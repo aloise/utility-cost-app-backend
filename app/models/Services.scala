@@ -1,6 +1,5 @@
 package models
 
-
 import java.time.LocalDateTime
 import models.base.{IndexedRow, IndexedTable}
 import models.helpers._
@@ -11,28 +10,26 @@ import play.api.libs.json.{JsObject, JsValue}
 import slick.driver.H2Driver.api._
 import models.helpers.SlickColumnExtensions._
 
-import scala.concurrent.Future
+
+
 /**
   * User: aloise
   * Date: 23.05.16
-  * Time: 18:32
+  * Time: 22:18
   */
-
-case class User(
+case class Service(
   override val id:Option[Int],
-  name:String,
-  email:String,
-  password:String,
-  created:LocalDateTime
+  title:String,
+  area:String,
+  description:String
 ) extends IndexedRow
 
-class Users(tag:Tag) extends IndexedTable[User](tag, "users") {
+class Services(tag:Tag) extends IndexedTable[Service](tag, "services") {
 
-    def name = column[String]("name")
-    def email = column[String]("email")
-    def password = column[String]("password")
-    def created = column[LocalDateTime]("created")
+  def title = column[String]("title")
+  def area = column[String]("area")
+  def description = column[String]("description")
 
-    def * = (id.?, name, email, password, created) <> (User.tupled, User.unapply)
+  def * = (id.?, title,area, description) <> ( Service.tupled, Service.unapply )
 
 }

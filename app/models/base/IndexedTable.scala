@@ -13,14 +13,12 @@ import slick.driver.JdbcProfile
 
 import scala.concurrent.Future
 import scala.reflect.ClassTag
-import slick.driver.MySQLDriver.api._
 import slick.lifted.Rep
 import slick.model.Column
 import slick.lifted.{CanBeQueryCondition, LiteralColumn, Tag}
 import slick.profile.FixedSqlAction
-
 import scala.concurrent.ExecutionContext.Implicits.global
-
+import slick.driver.H2Driver.api._
 
 /**
   * User: aeon
@@ -32,10 +30,20 @@ trait IndexedRow {
   def id: Option[Int] = None
 }
 
-abstract class IndexedTableComponent[R <: IndexedRow with Serializable with Object , T <: IndexedTable[R]](override val records:TableQuery[T]) extends BaseTableComponent[R, T](records) {
+abstract class IndexedTable[R] (tag:Tag, schema:String) extends BaseTable[R](tag, schema){
+
+  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+
+}
+
+abstract class IndexedTableComponent[R <: IndexedRow, T <: IndexedTable[R]](override val records:TableQuery[T]) extends BaseTableComponent[R, T](records) {
 
   def insert(r:R): Future[Int] = {
     db.run(records returning records.map(_.id) += r)
+  }
+
+  def deleteById(id:Int):Future[Boolean] = {
+    db.run( records.filter(_.id === id ).delete ).map( _ > 0 )
   }
 
   def findById(id:Int):Future[R] = db.run(records.filter(_.id === id).take(1).result).map{s =>
@@ -45,24 +53,7 @@ abstract class IndexedTableComponent[R <: IndexedRow with Serializable with Obje
     }
   }
 
-  def findByIdOpt(id:Int):Future[Option[R]] = db.run(records.filter(_.id === id).take(1).result).map(s => s.headOption)
-
-}
-
-abstract class IndexedTable[R] (tag:Tag, schema:String) extends Table[R](tag, schema){
-
-  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
-
-}
-
-abstract class BaseTableComponent[R, T <: Table[R]](val records:TableQuery[T]) extends HasDatabaseConfigProvider[JdbcProfile] {
-
-  def all():Future[Seq[R]] = db.run(records.result)
-
-  def count[C <: Rep[_]](f: (T) => C)(implicit wt: CanBeQueryCondition[C]) = db.run(records.filter(f).length.result)
-
-  def filter[C <: Rep[_]](f: (T) => C)(implicit wt: CanBeQueryCondition[C]):Future[Seq[R]] = db.run(records.filter(f).result)
-
-  def findWhere[C <: Rep[_]](f: (T) => C)(implicit wt: CanBeQueryCondition[C]) = db.run(records.filter(f).take(1).result).map(_.headOption)
+  def findByIdOpt(id:Int):Future[Option[R]] =
+    db.run(records.filter(_.id === id).take(1).result).map(s => s.headOption)
 
 }
