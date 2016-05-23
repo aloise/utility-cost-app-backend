@@ -28,10 +28,12 @@ class Users @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) ex
 
   private class CatsTable(tag: Tag) extends Table[User](tag, "CAT") {
 
-    def name = column[String]("NAME", O.PrimaryKey)
-    def color = column[String]("COLOR")
+    def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+    def name = column[String]("name")
+    def email = column[String]("email")
+    def password = column[String]("password")
 
-    def * = (name, color) <> (User.tupled, User.unapply _)
+    def * = (id, name, email, password) <> (User.tupled, User.unapply)
   }
 
 }
