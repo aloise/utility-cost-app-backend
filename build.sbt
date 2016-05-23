@@ -12,7 +12,6 @@ resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
 
 libraryDependencies ++= Seq(
-  jdbc ,
   cache ,
   ws   ,
   "com.typesafe.play" %% "play-slick" % "2.0.0",
