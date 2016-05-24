@@ -28,7 +28,7 @@ case class User(
   created:LocalDateTime
 ) extends IndexedRow
 
-class Users(tag:Tag) extends IndexedTable[User](tag, "users") {
+class UsersTable(tag:Tag) extends IndexedTable[User](tag, "users") {
 
     def name = column[String]("name")
     def email = column[String]("email")
@@ -39,6 +39,6 @@ class Users(tag:Tag) extends IndexedTable[User](tag, "users") {
 
 }
 
-class UsersTable @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) extends IndexedTableComponent[User, Users](slick.lifted.TableQuery[Users])  {
+class Users @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) extends IndexedTableComponent[User, UsersTable](slick.lifted.TableQuery[UsersTable])  {
 
 }

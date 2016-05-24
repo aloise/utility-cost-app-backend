@@ -7,6 +7,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc.{Controller, Cookie, RequestHeader, Result}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
@@ -29,7 +30,7 @@ class BaseController @Inject()() extends Controller with AuthAction with JsonRes
 
 
   def getAuthCookie(user: models.User, rememberMe: Boolean = false) = {
-    Cookie(authCookieName, encryptObjId(user.id), if (rememberMe) Some(cookieMaxAge) else None, userCookiePath, httpOnly = false)
+    Cookie(authCookieName, encryptObjId(user.id.getOrElse(-1)), if (rememberMe) Some(cookieMaxAge) else None, userCookiePath, httpOnly = false)
   }
 
 
@@ -41,7 +42,7 @@ class BaseController @Inject()() extends Controller with AuthAction with JsonRes
 
     userIdOpt.map{ userId =>
       val users = injector.instanceOf[Users]
-      users.findById(userId).map{
+      users.findByIdOpt(userId).map{
         case Some(user) =>
           user
         case None =>
