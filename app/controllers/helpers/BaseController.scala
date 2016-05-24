@@ -28,27 +28,26 @@ class BaseController @Inject()() extends Controller with AuthAction with JsonRes
   val injector = appBuilder.injector()
 
 
-
   def getAuthCookie(user: models.User, rememberMe: Boolean = false) = {
     Cookie(authCookieName, encryptObjId(user.id.getOrElse(-1)), if (rememberMe) Some(cookieMaxAge) else None, userCookiePath, httpOnly = false)
   }
 
 
-  implicit def getObject( request:RequestHeader ): Future[models.User] = {
+  implicit def getObject(request: RequestHeader): Future[models.User] = {
 
-    val userIdOpt = request.cookies.get(authCookieName).flatMap{ cookie =>
+    val userIdOpt = request.cookies.get(authCookieName).flatMap { cookie =>
       decryptObjId(cookie.value).toOption
     }
 
-    userIdOpt.map{ userId =>
+    userIdOpt.map { userId =>
       val users = injector.instanceOf[Users]
-      users.findByIdOpt(userId).map{
+      users.findByIdOpt(userId).map {
         case Some(user) =>
           user
         case None =>
           throw new Exception("user_not_found")
       }
-    }.getOrElse( Future.failed(new Exception("incorrect_cookie")) )
+    }.getOrElse(Future.failed(new Exception("incorrect_cookie")))
   }
 
   implicit def onUnauthorized(t: Throwable, request: RequestHeader): Result = {
