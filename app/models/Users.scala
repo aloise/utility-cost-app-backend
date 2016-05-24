@@ -2,7 +2,9 @@ package models
 
 
 import java.time.LocalDateTime
-import models.base.{IndexedRow, IndexedTable}
+import javax.inject.Inject
+
+import models.base.{IndexedRow, IndexedTable, IndexedTableComponent}
 import models.helpers._
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.Codecs
@@ -34,5 +36,9 @@ class Users(tag:Tag) extends IndexedTable[User](tag, "users") {
     def created = column[LocalDateTime]("created")
 
     def * = (id.?, name, email, password, created) <> (User.tupled, User.unapply)
+
+}
+
+class UsersTable @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) extends IndexedTableComponent[User, Users](slick.lifted.TableQuery[Users])  {
 
 }
