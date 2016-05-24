@@ -14,7 +14,6 @@ import slick.driver.H2Driver.api._
 import models.helpers.SlickColumnExtensions._
 
 import scala.concurrent.Future
-
 /**
   * User: aloise
   * Date: 23.05.16
@@ -39,7 +38,7 @@ class UsersTable(tag: Tag) extends IndexedTable[User](tag, "users") {
 
   def created = column[LocalDateTime]("created")
 
-  def * = (id.?, name, email, password, created) <>(User.tupled, User.unapply)
+  def * = (id.?, name, email, password, created) <> (User.tupled, User.unapply)
 
 }
 

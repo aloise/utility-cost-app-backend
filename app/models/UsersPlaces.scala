@@ -1,7 +1,10 @@
 package models
 
-import models.base.BaseTable
+import javax.inject.Inject
+
+import models.base.{BaseTable, IndexedTableComponent}
 import models.helpers.SlickColumnExtensions._
+import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.H2Driver.api._
 
 /**

@@ -1,8 +1,9 @@
 package models
 
 import java.time.LocalDateTime
+import javax.inject.Inject
 
-import models.base.{IndexedRow, IndexedTable}
+import models.base.{IndexedRow, IndexedTable, IndexedTableComponent}
 import models.helpers._
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.Codecs
@@ -27,7 +28,7 @@ case class Bill(
   paid:Option[LocalDateTime]
 ) extends IndexedRow
 
-/*
+
 class Bills(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
 
   def placeId = column[Int]("place_id")
@@ -38,16 +39,16 @@ class Bills(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
   def valueAmount = column[BigDecimal]("value_amount")
   def valueCurrency = column[String]("value_currency")
 
-  def * = ( id.?, placeId, rateId, ( valueAmount, valueCurrency ), created, paid ) <> ( Bill.tupled, Bill.unapply ) (
+  // def address = foreignKey("place_id",placeId,  )(_.id)
+
+  def * = ( id.?, placeId, rateId, ( valueAmount, valueCurrency ), created, paid ).shaped <> (
     { case ( id, placeId, rateId, value, created, paid ) =>
       Bill( id, placeId, rateId, value, created, paid )
     },
-    { case Bill( id, placeId, rateId, value, created, paid ) =>
-      Some( ( id, placeId, rateId, value, created, paid ) )
+    { bill:Bill =>
+      Some( ( bill.id, bill.placeId, bill.rateId, ( bill.value.getAmount, bill.value.getCurrencyUnit.getCode ), bill.created, bill.paid ) )
     }
   )
 
 
 }
-*/
-
