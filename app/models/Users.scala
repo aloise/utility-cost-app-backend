@@ -5,11 +5,9 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 
 import models.base.{IndexedRow, IndexedTable, IndexedTableComponent}
-import models.helpers._
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.Codecs
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.{JsObject, JsValue}
 import slick.driver.H2Driver.api._
 import models.helpers.SlickColumnExtensions._
 

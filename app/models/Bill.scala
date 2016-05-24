@@ -1,18 +1,11 @@
 package models
 
 import java.time.LocalDateTime
-import javax.inject.Inject
 
-import models.base.{IndexedRow, IndexedTable, IndexedTableComponent}
-import models.helpers._
-import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.Codecs
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.{JsObject, JsValue}
+import models.base.{IndexedRow, IndexedTable}
+import models.helpers.SlickColumnExtensions._
+import org.joda.money.{CurrencyUnit, Money}
 import slick.driver.H2Driver.api._
-import models.helpers.SlickColumnExtensions._
-import org.joda.money.Money
-import models.helpers.SlickColumnExtensions._
 
 /**
   * User: aloise
@@ -46,9 +39,8 @@ class Bills(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
       Bill( id, placeId, rateId, value, created, paid )
     },
     { bill:Bill =>
-      Some( ( bill.id, bill.placeId, bill.rateId, ( bill.value.getAmount, bill.value.getCurrencyUnit.getCode ), bill.created, bill.paid ) )
+      Some( ( bill.id, bill.placeId, bill.rateId, ( BigDecimal(bill.value.getAmount), bill.value.getCurrencyUnit.getCode ), bill.created, bill.paid ) )
     }
   )
-
 
 }
