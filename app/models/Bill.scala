@@ -27,6 +27,7 @@ case class Bill(
   paid:Option[LocalDateTime]
 ) extends IndexedRow
 
+/*
 class Bills(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
 
   def placeId = column[Int]("place_id")
@@ -37,7 +38,7 @@ class Bills(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
   def valueAmount = column[BigDecimal]("value_amount")
   def valueCurrency = column[String]("value_currency")
 
-  def * = ( id.?, placeId, rateId, ( valueAmount, valueCurrency ), created, paid ) <> /*( Bill.tupled, Bill.unapply )*/ (
+  def * = ( id.?, placeId, rateId, ( valueAmount, valueCurrency ), created, paid ) <> ( Bill.tupled, Bill.unapply ) (
     { case ( id, placeId, rateId, value, created, paid ) =>
       Bill( id, placeId, rateId, value, created, paid )
     },
@@ -48,4 +49,5 @@ class Bills(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
 
 
 }
+*/
 
