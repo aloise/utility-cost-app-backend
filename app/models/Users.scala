@@ -38,7 +38,3 @@ class Users(tag:Tag) extends IndexedTable[User](tag, "users") {
     def * = (id.?, name, email, password, created) <> (User.tupled, User.unapply)
 
 }
-
-class UsersTable @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) extends IndexedTableComponent[User, Users](slick.lifted.TableQuery[Users])  {
-
-}

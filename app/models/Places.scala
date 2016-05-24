@@ -1,8 +1,10 @@
 package models
 
 import java.time.LocalDateTime
+import javax.inject.Inject
 
-import models.base.{IndexedRow, IndexedTable}
+import models.base.{IndexedRow, IndexedTable, IndexedTableComponent}
+import play.api.db.slick.DatabaseConfigProvider
 import slick.lifted._
 import slick.driver.H2Driver.api._
 

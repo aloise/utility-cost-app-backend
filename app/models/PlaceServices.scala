@@ -1,7 +1,9 @@
 package models
 
 import java.time.LocalDateTime
-import models.base.{IndexedRow, IndexedTable}
+import javax.inject.Inject
+
+import models.base.{IndexedRow, IndexedTable, IndexedTableComponent}
 import models.helpers._
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.Codecs
@@ -31,3 +33,6 @@ class PlacesServices(tag:Tag)  extends IndexedTable[PlacesService](tag, "places_
 
 
 }
+
+
+

@@ -1,7 +1,9 @@
 package models
 
 import java.time.LocalDateTime
-import models.base.{IndexedRow, IndexedTable}
+import javax.inject.Inject
+
+import models.base.{IndexedRow, IndexedTable, IndexedTableComponent}
 import models.helpers._
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.Codecs
@@ -33,3 +35,4 @@ class Services(tag:Tag) extends IndexedTable[Service](tag, "services") {
   def * = (id.?, title,area, description) <> ( Service.tupled, Service.unapply )
 
 }
+
