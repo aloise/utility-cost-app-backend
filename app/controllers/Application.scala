@@ -13,12 +13,14 @@ import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import models.helpers.ModelToJsonHelper._
 
+import scala.concurrent.ExecutionContext
+import play.api.Configuration
 
 
-class Application @Inject()(dbConfigProvider: DatabaseConfigProvider) extends BaseController {
+
+class Application @Inject()( implicit ec:ExecutionContext, users:models.Users, conf:Configuration) extends BaseController( ec, users ) {
 
   val loginDataReader = (
     (__ \ "email").read[String] and
@@ -34,13 +36,13 @@ class Application @Inject()(dbConfigProvider: DatabaseConfigProvider) extends Ba
 
 
   def index = Action {
-    Ok(views.html.index("Your new application is ready."))
+    Ok("Utility Billing Cost App")
   }
 
   def login = Action.async(parse.json) { implicit request =>
     request.body.validate(loginDataReader).map { case (email, password, rememberMe) =>
-      val users = injector.instanceOf[Users]
-      users.authenticate(email, password).map {
+
+      users.authenticate(email, password, getSecretToken() ).map {
         case Some(user) => jsonStatusOk.withCookies(getAuthCookie(user, rememberMe.getOrElse(false)))
         case None => Unauthorized(Json.obj("status" -> "error", "message" -> "unauthorized"))
       }.recover { case t: Throwable => recoverJsonException(t) }
@@ -49,14 +51,14 @@ class Application @Inject()(dbConfigProvider: DatabaseConfigProvider) extends Ba
 
   def signup = Action.async(parse.json) { implicit request =>
     request.body.validate(signupDataReader).map { case (email, name, password) =>
-      val users = injector.instanceOf[Users]
+
       val u = User(
         name = name,
         email = email,
         password = password,
         created = LocalDateTime.now()
       )
-      users.signup(u).map(u =>
+      users.signup(u, getSecretToken() ).map(u =>
         jsonStatusOk(Json.obj("user"->toJson(u))).withCookies(getAuthCookie(u))
       ).recover{case t:Throwable => recoverJsonException(t)}
     }recoverTotal recoverJsonErrorsFuture

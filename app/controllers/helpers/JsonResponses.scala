@@ -41,7 +41,7 @@ trait JsonResponses {
   protected def recoverJsonErrors( errors:JsError, additionalErrorObj : JsObject ):Result =
     BadRequest(Json.obj(
       "status" -> "error",
-      "message" -> JsError.toFlatJson(errors)
+      "message" -> JsError.toJson(errors )
     ) ++ additionalErrorObj )
 
   protected def recoverJsonErrors( error:String, description: String = null ):Result =
@@ -61,7 +61,7 @@ trait JsonResponses {
   protected def jsonStatusAccepted( additionalData : JsObject ) =
     Accepted(Json.obj("status" -> "ok") ++ additionalData)
 
-  protected def jsonStatusOkFuture( additionalData : JsObject ) =
+  protected def jsonStatusOkFuture( additionalData : JsObject = Json.obj() ) =
     Future.successful( Ok(Json.obj("status" -> "ok") ++ additionalData) )
   
 }

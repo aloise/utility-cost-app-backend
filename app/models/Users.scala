@@ -19,12 +19,12 @@ import scala.concurrent.Future
   */
 
 case class User(
-                 override val id: Option[Int] = None,
-                 name: String,
-                 email: String,
-                 password: String,
-                 created: LocalDateTime
-               ) extends IndexedRow
+     override val id: Option[Int] = None,
+     name: String,
+     email: String,
+     password: String,
+     created: LocalDateTime
+) extends IndexedRow
 
 class UsersTable(tag: Tag) extends IndexedTable[User](tag, "users") {
 
@@ -42,20 +42,24 @@ class UsersTable(tag: Tag) extends IndexedTable[User](tag, "users") {
 
 class Users @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) extends IndexedTableComponent[User, UsersTable](slick.lifted.TableQuery[UsersTable]) {
 
-  def signup(userToInsert: User): Future[User] = {
+  def passwordHash( password:String, salt:String ) = {
+    Codecs.sha1( salt + password )
+  }
+
+  def signup(userToInsert: User, salt:String): Future[User] = {
     findWhere(_.email === userToInsert.email).flatMap {
       case Some(_) => Future.failed(throw new Exception("email_not_available"))
       case None =>
-        insert(userToInsert.copy(password = Codecs.sha1(userToInsert.password))).map { newUserId =>
+        insert(userToInsert.copy(password = passwordHash(userToInsert.password, salt))).map { newUserId =>
           val newUser = userToInsert.copy(id = Some(newUserId))
           newUser
         }
     }
   }
 
-  def authenticate(email: String, password: String) = {
-    val saltPassword = Codecs.sha1(password)
-    findWhere(u => u.email === email && u.password === saltPassword)
+  def authenticate(email: String, password: String, salt:String) = {
+
+    findWhere(u => ( u.email === email ) && ( u.password === passwordHash( password, salt) ) )
   }
 
 }
