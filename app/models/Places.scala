@@ -23,7 +23,7 @@ case class Place(
   address:String
 ) extends IndexedRow
 
-class Places(tag:Tag) extends IndexedTable[Place](tag, "places") {
+class PlacesTable(tag:Tag) extends IndexedTable[Place](tag, "places") {
 
   def title = column[String]("name")
   def country = column[String]("email")
@@ -33,4 +33,31 @@ class Places(tag:Tag) extends IndexedTable[Place](tag, "places") {
   def address = column[String]("created")
 
   def * = (id.?, title, country, city, state, zip, address) <> (Place.tupled, Place.unapply)
+}
+
+/*
+class Places @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) extends IndexedTableComponent[Place, PlacesTable](slick.lifted.TableQuery[PlacesTable]) {
+
+}
+*/
+
+class PlacesQuery extends slick.lifted.TableQuery[PlacesTable]( tag => new PlacesTable(tag) ) {
+
+  def forUser( userId:Int ) = {
+    for {
+      place <- this
+      user <- UsersQuery()
+      userPlace <- UsersPlacesQuery()
+      if ( user.id === userId ) && ( userPlace.placeId === place.id ) && ( userPlace.userId === user.id )
+    } yield ( userPlace, place )
+  }
+
+}
+
+object PlacesQuery {
+
+  def apply( ) = new PlacesQuery()
+
+
+
 }

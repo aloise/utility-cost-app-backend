@@ -4,8 +4,9 @@ import javax.inject.Inject
 
 import models.base.{BaseTable, IndexedTableComponent}
 import models.helpers.SlickColumnExtensions._
-import play.api.db.slick.DatabaseConfigProvider
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.H2Driver.api._
+import slick.driver.JdbcProfile
 
 /**
   * User: aloise
@@ -35,5 +36,16 @@ class UsersPlaces(tag:Tag) extends BaseTable[UsersPlace](tag, "users_places") {
   def role = column[UserRole.Value]("role")
 
   def * = (userId, placeId, role) <> (UsersPlace.tupled, UsersPlace.unapply)
+
+}
+
+
+class UsersPlacesQuery extends slick.lifted.TableQuery[UsersPlaces]( tag => new UsersPlaces(tag) ) {
+
+}
+
+object UsersPlacesQuery  {
+
+  def apply( ) = new UsersPlacesQuery()
 
 }

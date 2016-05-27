@@ -26,11 +26,12 @@ abstract class BaseController( ec:ExecutionContext, users:models.Users ) extends
   val userCookiePath = "/"
 
 
+  def getAuthToken( user: models.User) =
+    encryptObjId(user.id.getOrElse(-1))
 
   def getAuthCookie(user: models.User, rememberMe: Boolean = false) = {
-    Cookie(authCookieName, encryptObjId(user.id.getOrElse(-1)), if (rememberMe) Some(cookieMaxAge) else None, userCookiePath, httpOnly = false)
+    Cookie(authCookieName, getAuthToken(user), if (rememberMe) Some(cookieMaxAge) else None, userCookiePath, httpOnly = false)
   }
-
 
   implicit def getObject(request: RequestHeader): Future[models.User] = {
 

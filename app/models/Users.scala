@@ -63,3 +63,13 @@ class Users @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) ex
   }
 
 }
+
+class UsersQuery extends slick.lifted.TableQuery[UsersTable]( tag => new UsersTable(tag) ) {
+
+}
+
+object UsersQuery {
+
+  def apply( ) = new UsersQuery()
+
+}
