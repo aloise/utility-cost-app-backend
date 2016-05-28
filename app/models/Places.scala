@@ -25,12 +25,12 @@ case class Place(
 
 class PlacesTable(tag:Tag) extends IndexedTable[Place](tag, "places") {
 
-  def title = column[String]("name")
-  def country = column[String]("email")
-  def city = column[String]("password")
-  def state = column[String]("password")
-  def zip = column[String]("password")
-  def address = column[String]("created")
+  def title = column[String]("title")
+  def country = column[String]("country")
+  def city = column[String]("city")
+  def state = column[String]("state")
+  def zip = column[String]("zip")
+  def address = column[String]("address")
 
   def * = (id.?, title, country, city, state, zip, address) <> (Place.tupled, Place.unapply)
 }
