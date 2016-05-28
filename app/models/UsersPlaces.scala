@@ -13,12 +13,6 @@ import slick.driver.JdbcProfile
   * Date: 23.05.16
   * Time: 21:44
   */
-case class UsersPlace(
-  userId:Int,
-  placeId:Int,
-  role:UserRole.Value
-)
-
 object UserRole extends Enumeration {
   type UserRole = Value
 
@@ -28,6 +22,14 @@ object UserRole extends Enumeration {
   val User = Value(2) // able to read
 
 }
+
+case class UsersPlace(
+  userId:Int,
+  placeId:Int,
+  role:UserRole.Value
+)
+
+
 
 class UsersPlaces(tag:Tag) extends BaseTable[UsersPlace](tag, "users_places") {
 
@@ -40,12 +42,6 @@ class UsersPlaces(tag:Tag) extends BaseTable[UsersPlace](tag, "users_places") {
 }
 
 
-class UsersPlacesQuery extends slick.lifted.TableQuery[UsersPlaces]( tag => new UsersPlaces(tag) ) {
-
-}
-
-object UsersPlacesQuery  {
-
-  def apply( ) = new UsersPlacesQuery()
+object UsersPlacesQuery extends BaseTableQuery[UsersPlace, UsersPlaces]( tag => new UsersPlaces(tag) ) {
 
 }

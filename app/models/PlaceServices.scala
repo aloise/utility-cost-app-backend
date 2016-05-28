@@ -24,13 +24,17 @@ case class PlacesService (
   created:LocalDateTime
 )
 
-class PlacesServices(tag:Tag)  extends IndexedTable[PlacesService](tag, "places_services") {
+class PlacesServicesTable(tag:Tag)  extends BaseTable[PlacesService](tag, "places_services") {
   def placeId = column[Int]("place_id")
   def serviceId = column[Int]("service_id")
   def created = column[LocalDateTime]("created")
 
   def * = ( placeId, serviceId, created ) <> ( PlacesService.tupled, PlacesService.unapply )
 
+
+}
+
+object PlacesServicesQuery extends BaseTableQuery[PlacesService, PlacesServicesTable]( tag => new PlacesServicesTable(tag) ) {
 
 }
 

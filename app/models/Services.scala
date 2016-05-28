@@ -25,13 +25,17 @@ case class Service(
   description:String
 ) extends IndexedRow
 
-class Services(tag:Tag) extends IndexedTable[Service](tag, "services") {
+class ServicesTable(tag:Tag) extends IndexedTable[Service](tag, "services") {
 
   def title = column[String]("title")
   def area = column[String]("area")
   def description = column[String]("description")
 
   def * = (id.?, title,area, description) <> ( Service.tupled, Service.unapply )
+
+}
+
+object ServicesQuery extends IndexedTableQuery[Service, ServicesTable]( tag => new ServicesTable(tag) ) {
 
 }
 
