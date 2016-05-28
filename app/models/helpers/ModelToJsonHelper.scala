@@ -10,4 +10,6 @@ object ModelToJsonHelper {
 
   implicit val userToJson = Json.format[User]
 
+  implicit val placesToJson = Json.format[Place]
+
 }

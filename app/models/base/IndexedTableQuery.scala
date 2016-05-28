@@ -11,33 +11,25 @@ import scala.concurrent.Future
   * Date: 28.05.16
   * Time: 22:31
   */
-class IndexedTableQuery[R <: IndexedRow,T <: IndexedTable[R] ]( builder: Tag => T ) extends BaseTableQuery[R,T]( builder ) {
+class IndexedTableQuery[R <: IndexedRow, T <: IndexedTable[R]](builder: Tag => T) extends BaseTableQuery[R, T](builder) {
 
-  def insert()(implicit db:DBAccessProvider) = {
-
+  def findById(id: Int) = {
+    table.filter(_.id === id).result.head
   }
 
-  def findById(id:Int)(implicit db:DBAccessProvider):Future[R] = {
-    findById(Some(id))(db)
+  def insert(record: R) = {
+    table returning table.map(_.id) += record
   }
 
-  def findById(idOpt:Option[Int])(implicit db:DBAccessProvider):Future[R] = {
-    idOpt match {
-      case Some(id) =>
-        db.run(table.filter(_.id === id).result.head)
-      case None =>
-        Future.failed( new Exception("no_record_with_id") )
-    }
-
+  def deleteById(id: Int) = {
+    table.filter(_.id === id).delete
   }
 
-    def insert(record:R)(implicit db:DBAccessProvider): Future[Int] = {
-      db.run(table returning table.map(_.id) += record)
-    }
+  def update(id:Int, record:R) = {
+    table.filter(_.id === id).update(record)
+  }
 
-    def deleteById(id:Int)(implicit db:DBAccessProvider):Future[Int] = {
-      db.run( table.filter(_.id === id ).delete )
-    }
+
 
 
 }
