@@ -22,16 +22,3 @@ import scala.concurrent.Future
 abstract class BaseTable[R] (tag:Tag, schema:String) extends Table[R](tag, schema){
 
 }
-
-
-abstract class BaseTableComponent[R, T <: BaseTable[R]](val records:TableQuery[T]) extends HasDatabaseConfigProvider[JdbcProfile] {
-
-  def all():Future[Seq[R]] = db.run(records.result)
-
-  def count[C <: Rep[_]](f: (T) => C)(implicit wt: CanBeQueryCondition[C]) = db.run(records.filter(f).length.result)
-
-  def filter[C <: Rep[_]](f: (T) => C)(implicit wt: CanBeQueryCondition[C]):Future[Seq[R]] = db.run(records.filter(f).result)
-
-  def findWhere[C <: Rep[_]](f: (T) => C)(implicit wt: CanBeQueryCondition[C]) = db.run(records.filter(f).take(1).result).map(_.headOption)
-
-}

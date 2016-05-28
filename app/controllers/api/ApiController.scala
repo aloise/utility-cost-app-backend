@@ -3,6 +3,7 @@ package controllers.api
 import javax.inject.Inject
 
 import controllers.helpers.BaseController
+import models.base.DBAccessProvider
 import play.api.libs.json._
 import play.api.mvc.{Request, RequestHeader, Result}
 
@@ -13,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
   * Date: 26.05.16
   * Time: 12:58
   */
-abstract class ApiController ( ec:ExecutionContext, users:models.Users ) extends BaseController( ec, users ) {
+abstract class ApiController ( ec:ExecutionContext, db:DBAccessProvider ) extends BaseController( ec, db ) {
 
   def apiWithAuth(f: => models.User => Request[JsValue] => Future[Result]) =
     withAuthJsonAsync[models.User]( f )( getObject, onUnauthorized )

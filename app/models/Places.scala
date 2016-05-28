@@ -1,9 +1,8 @@
 package models
 
 import java.time.LocalDateTime
-import javax.inject.Inject
 
-import models.base.{IndexedRow, IndexedTable, IndexedTableComponent}
+import models.base._
 import play.api.db.slick.DatabaseConfigProvider
 import slick.lifted._
 import slick.driver.H2Driver.api._
@@ -35,29 +34,16 @@ class PlacesTable(tag:Tag) extends IndexedTable[Place](tag, "places") {
   def * = (id.?, title, country, city, state, zip, address) <> (Place.tupled, Place.unapply)
 }
 
-/*
-class Places @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) extends IndexedTableComponent[Place, PlacesTable](slick.lifted.TableQuery[PlacesTable]) {
+object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new PlacesTable(tag) ) {
 
-}
-*/
-
-class PlacesQuery extends slick.lifted.TableQuery[PlacesTable]( tag => new PlacesTable(tag) ) {
 
   def forUser( userId:Int ) = {
     for {
-      place <- this
+      place <- PlacesQuery()
       user <- UsersQuery()
       userPlace <- UsersPlacesQuery()
       if ( user.id === userId ) && ( userPlace.placeId === place.id ) && ( userPlace.userId === user.id )
     } yield ( userPlace, place )
   }
-
-}
-
-object PlacesQuery {
-
-  def apply( ) = new PlacesQuery()
-
-
 
 }

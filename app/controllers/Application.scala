@@ -4,7 +4,8 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 
 import controllers.helpers.BaseController
-import models.{User, Users}
+import models.base.DBAccessProvider
+import models._
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Json._
@@ -20,7 +21,7 @@ import play.api.Configuration
 
 
 
-class Application @Inject()( implicit ec:ExecutionContext, users:models.Users, conf:Configuration) extends BaseController( ec, users ) {
+class Application @Inject()( implicit ec:ExecutionContext, conf:Configuration, db:DBAccessProvider) extends BaseController( ec, db ) {
 
   val loginDataReader = (
     (__ \ "email").read[String] and
@@ -42,7 +43,7 @@ class Application @Inject()( implicit ec:ExecutionContext, users:models.Users, c
   def login = Action.async(parse.json) { implicit request =>
     request.body.validate(loginDataReader).map { case (email, password, rememberMe) =>
 
-      users.authenticate(email, password, getSecretToken() ).map {
+      UsersQuery.authenticate(email, password, getSecretToken() ).map {
         case Some(user) => jsonStatusOk.withCookies(getAuthCookie(user, rememberMe.getOrElse(false)))
         case None => Unauthorized(Json.obj("status" -> "error", "message" -> "unauthorized"))
       }.recover { case t: Throwable => recoverJsonException(t) }
@@ -58,7 +59,7 @@ class Application @Inject()( implicit ec:ExecutionContext, users:models.Users, c
         password = password,
         created = LocalDateTime.now()
       )
-      users.signup(u, getSecretToken() ).map(u =>
+      UsersQuery.signup(u, getSecretToken() ).map(u =>
         jsonStatusOk(Json.obj("user"->toJson(u))).withCookies(getAuthCookie(u))
       ).recover{case t:Throwable => recoverJsonException(t)}
     }recoverTotal recoverJsonErrorsFuture

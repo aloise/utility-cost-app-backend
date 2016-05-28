@@ -2,7 +2,7 @@ package models
 
 import javax.inject.Inject
 
-import models.base.{BaseTable, IndexedTableComponent}
+import models.base._
 import models.helpers.SlickColumnExtensions._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.H2Driver.api._

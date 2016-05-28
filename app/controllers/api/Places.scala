@@ -13,12 +13,10 @@ import scala.concurrent.ExecutionContext
   * Date: 27.05.16
   * Time: 22:56
   */
-class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider, users: models.Users ) extends ApiController(ec, users) {
+class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) extends ApiController(ec, db) {
 
   def list = apiWithAuth { user => r =>
-    db.run{
-      PlacesQuery().forUser(user.id.getOrElse(0)).result
-    }.map{ items =>
+    db.run( PlacesQuery.forUser(user.id.getOrElse(0)).result ).map{ items =>
       jsonStatusOk
     }
 

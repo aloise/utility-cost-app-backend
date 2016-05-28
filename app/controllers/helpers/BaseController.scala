@@ -2,7 +2,8 @@ package controllers.helpers
 
 import javax.inject.Inject
 
-import models.Users
+import models.base.DBAccessProvider
+import models._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc.{Controller, Cookie, RequestHeader, Result}
@@ -16,7 +17,7 @@ import scala.language.implicitConversions
   */
 
 
-abstract class BaseController( ec:ExecutionContext, users:models.Users ) extends Controller with AuthAction with JsonResponses {
+abstract class BaseController( ec:ExecutionContext, db:DBAccessProvider ) extends Controller with AuthAction with JsonResponses {
 
   val cookieMaxAge = 30 * 24 * 3600
 
@@ -41,14 +42,7 @@ abstract class BaseController( ec:ExecutionContext, users:models.Users ) extends
       decryptObjId(token).toOption
     }
 
-    userIdOpt.map { userId =>
-      users.findByIdOpt(userId).map {
-        case Some(user) =>
-          user
-        case None =>
-          throw new Exception("user_not_found")
-      }(ec)
-    }.getOrElse(Future.failed(new Exception("incorrect_cookie")))
+    UsersQuery.findById(userIdOpt)(db)
   }
 
   implicit def onUnauthorized(t: Throwable, request: RequestHeader): Result = {

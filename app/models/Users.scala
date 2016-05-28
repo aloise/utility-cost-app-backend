@@ -4,7 +4,7 @@ package models
 import java.time.LocalDateTime
 import javax.inject.Inject
 
-import models.base.{IndexedRow, IndexedTable, IndexedTableComponent}
+import models.base._
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.Codecs
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -40,15 +40,16 @@ class UsersTable(tag: Tag) extends IndexedTable[User](tag, "users") {
 
 }
 
-class Users @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) extends IndexedTableComponent[User, UsersTable](slick.lifted.TableQuery[UsersTable]) {
+object UsersQuery extends IndexedTableQuery[User,UsersTable]( tag => new UsersTable(tag) ) {
 
   def passwordHash( password:String, salt:String ) = {
     Codecs.sha1( salt + password )
   }
 
-  def signup(userToInsert: User, salt:String): Future[User] = {
-    findWhere(_.email === userToInsert.email).flatMap {
-      case Some(_) => Future.failed(throw new Exception("email_not_available"))
+  def signup(userToInsert: User, salt:String)(implicit db:DBAccessProvider): Future[User] = {
+    db.run( UsersQuery().filter(_.email === userToInsert.email).result.headOption ).flatMap {
+      case Some(_) =>
+        Future.failed(throw new Exception("email_not_available"))
       case None =>
         insert(userToInsert.copy(password = passwordHash(userToInsert.password, salt))).map { newUserId =>
           val newUser = userToInsert.copy(id = Some(newUserId))
@@ -57,19 +58,13 @@ class Users @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) ex
     }
   }
 
-  def authenticate(email: String, password: String, salt:String) = {
-
-    findWhere(u => ( u.email === email ) && ( u.password === passwordHash( password, salt) ) )
+  def authenticate(email: String, password: String, salt:String)(implicit db:DBAccessProvider) = {
+    db.run {
+      table.filter{
+        u => (u.email === email) && (u.password === passwordHash(password, salt))
+      }.result.headOption
+    }
   }
 
-}
-
-class UsersQuery extends slick.lifted.TableQuery[UsersTable]( tag => new UsersTable(tag) ) {
-
-}
-
-object UsersQuery {
-
-  def apply( ) = new UsersQuery()
 
 }

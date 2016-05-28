@@ -2,8 +2,7 @@ package models
 
 import java.time.LocalDateTime
 import javax.inject.Inject
-
-import models.base.{IndexedRow, IndexedTable, IndexedTableComponent}
+import models.base._
 import models.helpers._
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.Codecs
