@@ -50,5 +50,21 @@ class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ex
 
 
   }
+  def delete = apiWithParser(JsonModels.placeToJson) { user => place =>
+
+    place.id match {
+      case Some(id) =>
+        db.run(
+          UsersPlacesQuery.findUserPlace(user.id.getOrElse(-1), id, UserRole.Admin)
+            .flatMap { userPlace =>
+              PlacesQuery.deleteById(userPlace.placeId).map { updatedPlace =>
+                jsonStatusOk
+              }
+            })
+      case None => recoverJsonErrorsFuture("no_id")
+    }
+
+
+  }
 
 }
