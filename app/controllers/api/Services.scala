@@ -25,7 +25,7 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
       ( for {
         service <- ServicesQuery
         servicePlace <- PlacesServicesQuery
-        if service.id === servicePlace.serviceId
+        if service.id === servicePlace.serviceId && !service.isDeleted
 
       } yield service ).result
     } map { services =>

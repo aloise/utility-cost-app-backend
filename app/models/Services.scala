@@ -22,7 +22,8 @@ case class Service(
   override val id:Option[Int],
   title:String,
   area:String,
-  description:String
+  description:String,
+  override val isDeleted:Boolean = false
 ) extends IndexedRow
 
 class ServicesTable(tag:Tag) extends IndexedTable[Service](tag, "services") {

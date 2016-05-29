@@ -22,7 +22,8 @@ case class ServiceRate(
   isActive: Boolean,
   activeFromDate:LocalDateTime,
   inactiveFromDate:Option[LocalDateTime],
-  rateData:JsValue
+  rateData:JsValue,
+  override val isDeleted:Boolean = false
 ) extends IndexedRow
 
 class ServiceRates(tag:Tag) extends IndexedTable[ServiceRate](tag, "service_rates") {

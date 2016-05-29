@@ -23,7 +23,8 @@ case class User(
      name: String,
      email: String,
      password: String,
-     created: LocalDateTime
+     created: LocalDateTime,
+     override val isDeleted:Boolean = false
 ) extends IndexedRow
 
 class UsersTable(tag: Tag) extends IndexedTable[User](tag, "users") {
@@ -47,7 +48,6 @@ object UsersQuery extends IndexedTableQuery[User,UsersTable]( tag => new UsersTa
   }
 
   def signup(userToInsert: User, salt:String) = {
-    userToInsert.copy()
     insert(userToInsert.copy(password = passwordHash(userToInsert.password, salt)))
 //    db.run( UsersQuery().filter(_.email === userToInsert.email).result.headOption ).flatMap {
 //      case Some(_) =>
@@ -63,7 +63,7 @@ object UsersQuery extends IndexedTableQuery[User,UsersTable]( tag => new UsersTa
   def authenticate(email: String, password: String, salt:String)(implicit db:DBAccessProvider) = {
     db.run {
       this.filter{
-        u => (u.email === email) && (u.password === passwordHash(password, salt))
+        u => !u.isDeleted && (u.email === email) && (u.password === passwordHash(password, salt))
       }.result.headOption
     }
   }

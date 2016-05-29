@@ -18,7 +18,8 @@ case class Bill(
   rateId:Int,
   value:Money,
   created: LocalDateTime,
-  paid:Option[LocalDateTime]
+  paid:Option[LocalDateTime],
+  override val isDeleted:Boolean = false
 ) extends IndexedRow
 
 

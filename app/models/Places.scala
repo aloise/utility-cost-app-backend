@@ -21,7 +21,8 @@ case class Place(
   city:String,
   state:String,
   zip:String,
-  address:String
+  address:String,
+  override val isDeleted:Boolean = false
 ) extends IndexedRow
 
 class PlacesTable(tag:Tag) extends IndexedTable[Place](tag, "places") {
@@ -45,7 +46,7 @@ object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new Plac
         userPlace <- UsersPlacesQuery
         if
           ( userPlace.placeId === placeId ) &&
-          ( user.id === userPlace.userId ) &&
+          ( user.id === userPlace.userId && !user.isDeleted ) &&
           (
             ( userPlace.role === UserRole.Admin ) ||
             ( accessType == ObjectAccess.Read )
@@ -59,7 +60,7 @@ object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new Plac
       place <- PlacesQuery
       user <- UsersQuery
       userPlace <- UsersPlacesQuery
-      if ( user.id === userId ) && ( userPlace.placeId === place.id ) && ( userPlace.userId === user.id )
+      if ( user.id === userId ) && !user.isDeleted && ( userPlace.placeId === place.id ) && !place.isDeleted && ( userPlace.userId === user.id )
     } yield ( userPlace, place )
   }
 

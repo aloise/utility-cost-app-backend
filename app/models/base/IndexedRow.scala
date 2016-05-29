@@ -7,4 +7,5 @@ package models.base
   */
 trait IndexedRow {
   def id: Option[Int] = None
+  def isDeleted: Boolean = false
 }

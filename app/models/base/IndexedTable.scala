@@ -24,4 +24,6 @@ abstract class IndexedTable[R <: IndexedRow] (tag:Tag, schema:String) extends Ba
 
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
 
+  def isDeleted = column[Boolean]("is_deleted")
+
 }
