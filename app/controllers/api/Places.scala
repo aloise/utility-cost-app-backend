@@ -4,7 +4,7 @@ import javax.inject.Inject
 
 import models.{PlacesQuery, UserRole, UsersPlace, UsersPlacesQuery}
 import models.base.DBAccessProvider
-import models.helpers.ModelToJsonHelper
+import models.helpers.JsonModels
 import play.api.libs.json.Json
 import slick.driver.H2Driver.api._
 import slick.driver.JdbcProfile
@@ -26,7 +26,7 @@ class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ex
     }
   }
 
-  def create = apiWithParser(ModelToJsonHelper.placesToJson) { user => place =>
+  def create = apiWithParser(JsonModels.placeToJson) { user => place =>
     db.run(PlacesQuery.insert(place).flatMap { newId =>
       PlacesQuery.findById(newId)
     }).map { place =>
@@ -34,7 +34,7 @@ class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ex
     }
   }
 
-  def update = apiWithParser(ModelToJsonHelper.placesToJson) { user => place =>
+  def update = apiWithParser(JsonModels.placeToJson) { user => place =>
 
     place.id match {
       case Some(id) =>

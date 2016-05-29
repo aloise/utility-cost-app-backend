@@ -23,8 +23,8 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
 
     db.run {
       ( for {
-        service <- ServicesQuery()
-        servicePlace <- PlacesServicesQuery()
+        service <- ServicesQuery
+        servicePlace <- PlacesServicesQuery
         if service.id === servicePlace.serviceId
 
       } yield service ).result
