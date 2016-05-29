@@ -1,7 +1,7 @@
 package models.base
 
 import slick.lifted.TableQuery
-import slick.lifted._
+import slick.driver.H2Driver.api._
 
 /**
   * User: aloise
@@ -10,5 +10,8 @@ import slick.lifted._
   */
 abstract class BaseTableQuery[R,T <: BaseTable[R] ]( builder: Tag => T ) extends TableQuery[T](builder){
 
+  def insert(record: R) = {
+    this += record
+  }
 
 }

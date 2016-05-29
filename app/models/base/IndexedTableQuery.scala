@@ -18,7 +18,7 @@ class IndexedTableQuery[R <: IndexedRow, T <: IndexedTable[R]](builder: Tag => T
     filter(_.id === id).result.headOption
   }
 
-  def insert(record: R) = {
+  override def insert(record: R) = {
      this returning map(_.id) += record
   }
 
