@@ -38,12 +38,13 @@ class PlacesTable(tag:Tag) extends IndexedTable[Place](tag, "places") {
 
 object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new PlacesTable(tag) ) {
 
-  def hasAccess( userId:Int, accessType: ObjectAccess.Access ) = {
+  def hasAccess( placeId:Int, userId:Int, accessType: ObjectAccess.Access ) = {
     (
       for {
         user <- UsersQuery
         userPlace <- UsersPlacesQuery
         if
+          ( userPlace.placeId === placeId ) &&
           ( user.id === userPlace.userId ) &&
           (
             ( userPlace.role === UserRole.Admin ) ||
