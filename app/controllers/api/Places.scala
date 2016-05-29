@@ -38,13 +38,15 @@ class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ex
 
     place.id match {
       case Some(id) =>
-        db.run(
-          UsersPlacesQuery.findUserPlace(user.id.getOrElse(-1), id, UserRole.Admin)
-            .flatMap { userPlace =>
-              PlacesQuery.update(id, place).flatMap(PlacesQuery.findById).map { updatedPlace =>
-                jsonStatusOk(Json.obj("place" -> Json.toJson(updatedPlace)))
-              }
-            })
+        db.run(UsersPlacesQuery.findUserPlace(user.id.getOrElse(-1), id, UserRole.Admin))
+            .flatMap {
+              case Some(userPlace) =>
+                db.run(PlacesQuery.update(id, place).flatMap(PlacesQuery.findById)).map { updatedPlace =>
+                  jsonStatusOk(Json.obj("place" -> updatedPlace))
+                }
+              case None =>
+                recoverJsonErrorsFuture("user_place_not_found")
+            }
       case None => recoverJsonErrorsFuture("no_id")
     }
 
@@ -54,16 +56,17 @@ class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ex
 
     place.id match {
       case Some(id) =>
-        db.run(
-          UsersPlacesQuery.findUserPlace(user.id.getOrElse(-1), id, UserRole.Admin)
-            .flatMap { userPlace =>
-              PlacesQuery.deleteById(userPlace.placeId).map { updatedPlace =>
-                jsonStatusOk
-              }
-            })
+        db.run(UsersPlacesQuery.findUserPlace(user.id.getOrElse(-1), id, UserRole.Admin))
+            .flatMap {
+              case Some(userPlace) =>
+                db.run(PlacesQuery.deleteById(userPlace.placeId)).map { updatedPlace =>
+                  jsonStatusOk
+                }
+              case None =>
+                recoverJsonErrorsFuture("user_place_not_found")
+            }
       case None => recoverJsonErrorsFuture("no_id")
     }
-
 
   }
 

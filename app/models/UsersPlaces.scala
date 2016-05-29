@@ -45,7 +45,7 @@ class UsersPlaces(tag:Tag) extends BaseTable[UsersPlace](tag, "users_places") {
 object UsersPlacesQuery extends BaseTableQuery[UsersPlace, UsersPlaces]( tag => new UsersPlaces(tag) ) {
 
   def findUserPlace(userId:Int, placeId:Int, role:UserRole.UserRole) = {
-    filter(p => p.userId === userId && p.placeId === placeId && p.role === role).result.head
+    filter(p => p.userId === userId && p.placeId === placeId && p.role === role).result.headOption
   }
 
 }
