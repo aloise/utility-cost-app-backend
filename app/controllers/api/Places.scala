@@ -27,7 +27,7 @@ class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ex
   }
 
   def create = apiWithParser(JsonModels.placeToJson) { user => place =>
-    db.run(PlacesQuery.insert(place).flatMap { newId =>
+    db.run(PlacesQuery.insert(place.copy(id=None)).flatMap { newId =>
       PlacesQuery.findById(newId)
     }).map { place =>
       jsonStatusOk(Json.obj("place" -> Json.toJson(place)))

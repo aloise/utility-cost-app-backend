@@ -2,8 +2,9 @@ package controllers.api
 
 import javax.inject.Inject
 
-import models.{PlacesServicesQuery, ServicesQuery}
+import models._
 import models.base.DBAccessProvider
+import models.helpers.JsonModels
 import slick.driver.H2Driver.api._
 import models.helpers.SlickColumnExtensions._
 import play.api.libs.json.Json
@@ -20,7 +21,6 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
   import models.helpers.JsonModels._
 
   def list(placeId:Int) = apiWithAuth { user => r =>
-
     db.run {
       ( for {
         service <- ServicesQuery
@@ -30,10 +30,15 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
       } yield service ).result
     } map { services =>
       jsonStatusOk( Json.obj("services" -> services ) )
+    }
 
-    } recover {
-      case ex:Throwable =>
-        recoverJsonException(ex)
+  }
+
+  def create = apiWithParser( JsonModels.serviceToJson ) { user => service =>
+    db.run(ServicesQuery.insert(service.copy( id = None )).flatMap { newId =>
+      ServicesQuery.findById(newId)
+    }).map { place =>
+      jsonStatusOk(Json.obj("service" -> Json.toJson(place)))
     }
 
   }
