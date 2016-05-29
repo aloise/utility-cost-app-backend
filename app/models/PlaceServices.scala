@@ -39,4 +39,3 @@ object PlacesServicesQuery extends BaseTableQuery[PlacesService, PlacesServicesT
 }
 
 
-
