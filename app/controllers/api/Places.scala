@@ -15,6 +15,8 @@ import scala.concurrent.ExecutionContext
   */
 class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) extends ApiController(ec, db) {
 
+  import models.helpers.JsonModels._
+
   def list = apiWithAuth { user => r =>
     db.run( PlacesQuery.forUser(user.id.getOrElse(0)).result ).map{ items =>
       jsonStatusOk
