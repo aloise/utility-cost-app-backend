@@ -26,10 +26,10 @@ class DatabaseModelsTestSpec extends PlaySpec with ScalaFutures with BeforeAndAf
   val db = Database.forConfig("h2mem1")
 
   val setup = DBIO.seq(
-    ( UsersQuery().schema ++ UsersPlacesQuery().schema ++ PlacesQuery().schema ).create,
-    UsersQuery() ++= ( for( i <- 1 to 15 ) yield User( Some(i), "test-name-"+i, "test"+i+"@email.com", "pass"+i, LocalDateTime.now() ) ),
-    PlacesQuery() ++= ( for( i <- 1 to 10 ) yield Place( Some(i), "Place "+i, "country"+i, "city"+i, "state"+i, "zip"+i, "address"+i ) ),
-    UsersPlacesQuery() ++= Seq( UsersPlace( 1, 1, UserRole.Admin ), UsersPlace( 1,2, UserRole.Admin ) , UsersPlace(1,3,UserRole.User) )
+    ( UsersQuery.schema ++ UsersPlacesQuery.schema ++ PlacesQuery.schema ).create,
+    UsersQuery ++= ( for( i <- 1 to 15 ) yield User( Some(i), "test-name-"+i, "test"+i+"@email.com", "pass"+i, LocalDateTime.now() ) ),
+    PlacesQuery ++= ( for( i <- 1 to 10 ) yield Place( Some(i), "Place "+i, "country"+i, "city"+i, "state"+i, "zip"+i, "address"+i ) ),
+    UsersPlacesQuery ++= Seq( UsersPlace( 1, 1, UserRole.Admin ), UsersPlace( 1,2, UserRole.Admin ) , UsersPlace(1,3,UserRole.User) )
   )
 
   "Database" must {
