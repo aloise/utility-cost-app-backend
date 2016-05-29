@@ -14,7 +14,7 @@ import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import models.helpers.ModelToJsonHelper._
+import models.helpers.JsonModels._
 
 import scala.concurrent.ExecutionContext
 import play.api.Configuration

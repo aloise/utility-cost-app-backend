@@ -2,7 +2,7 @@ package models
 
 import java.time.LocalDateTime
 
-import models.base.{IndexedRow, IndexedTable}
+import models.base.{IndexedRow, IndexedTable, IndexedTableQuery}
 import models.helpers.SlickColumnExtensions._
 import org.joda.money.{CurrencyUnit, Money}
 import slick.driver.H2Driver.api._
@@ -22,7 +22,7 @@ case class Bill(
 ) extends IndexedRow
 
 
-class Bills(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
+class BillsTable(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
 
   def placeId = column[Int]("place_id")
   def rateId = column[Int]("rate_id")
@@ -42,5 +42,9 @@ class Bills(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
       Some( ( bill.id, bill.placeId, bill.rateId, ( BigDecimal(bill.value.getAmount), bill.value.getCurrencyUnit.getCode ), bill.created, bill.paid ) )
     }
   )
+
+}
+
+object BillsQuery extends IndexedTableQuery[Bill,BillsTable]( tag => new BillsTable(tag) ) {
 
 }

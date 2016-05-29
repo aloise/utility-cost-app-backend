@@ -21,7 +21,7 @@ import scala.concurrent.ExecutionContext
   */
 class Users @Inject() ( implicit ec:ExecutionContext, conf:play.api.Configuration, db:DBAccessProvider ) extends ApiController(ec, db) {
 
-  implicit val userToJson = Json.format[models.User]
+  import models.helpers.JsonModels._
 
   val authDataReader = (
       (__ \ "email").read[String] and
