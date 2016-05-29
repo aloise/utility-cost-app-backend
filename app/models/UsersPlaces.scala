@@ -40,12 +40,10 @@ class UsersPlaces(tag:Tag) extends BaseTable[UsersPlace](tag, "users_places") {
 }
 
 
-class UsersPlacesQuery extends slick.lifted.TableQuery[UsersPlaces]( tag => new UsersPlaces(tag) ) {
+object UsersPlacesQuery extends BaseTableQuery[UsersPlace, UsersPlaces]( tag => new UsersPlaces(tag) ) {
 
-}
-
-object UsersPlacesQuery  {
-
-  def apply( ) = new UsersPlacesQuery()
+  def findUserPlace(userId:Int, placeId:Int, role:UserRole.UserRole) = {
+    filter(p => p.userId === userId && p.placeId === placeId && p.role === role).result.head
+  }
 
 }

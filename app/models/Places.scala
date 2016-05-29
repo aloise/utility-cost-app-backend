@@ -39,9 +39,9 @@ object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new Plac
 
   def forUser( userId:Int ) = {
     for {
-      place <- PlacesQuery()
-      user <- UsersQuery()
-      userPlace <- UsersPlacesQuery()
+      place <- PlacesQuery
+      user <- UsersQuery
+      userPlace <- UsersPlacesQuery
       if ( user.id === userId ) && ( userPlace.placeId === place.id ) && ( userPlace.userId === user.id )
     } yield ( userPlace, place )
   }

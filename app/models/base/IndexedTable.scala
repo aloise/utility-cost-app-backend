@@ -20,7 +20,7 @@ import slick.profile.FixedSqlAction
 import scala.concurrent.ExecutionContext.Implicits.global
 import slick.driver.H2Driver.api._
 
-abstract class IndexedTable[R] (tag:Tag, schema:String) extends BaseTable[R](tag, schema){
+abstract class IndexedTable[R <: IndexedRow] (tag:Tag, schema:String) extends BaseTable[R](tag, schema){
 
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
 

@@ -46,21 +46,23 @@ object UsersQuery extends IndexedTableQuery[User,UsersTable]( tag => new UsersTa
     Codecs.sha1( salt + password )
   }
 
-  def signup(userToInsert: User, salt:String)(implicit db:DBAccessProvider): Future[User] = {
-    db.run( UsersQuery().filter(_.email === userToInsert.email).result.headOption ).flatMap {
-      case Some(_) =>
-        Future.failed(throw new Exception("email_not_available"))
-      case None =>
-        insert(userToInsert.copy(password = passwordHash(userToInsert.password, salt))).map { newUserId =>
-          val newUser = userToInsert.copy(id = Some(newUserId))
-          newUser
-        }
-    }
+  def signup(userToInsert: User, salt:String) = {
+    userToInsert.copy()
+    insert(userToInsert.copy(password = passwordHash(userToInsert.password, salt)))
+//    db.run( UsersQuery().filter(_.email === userToInsert.email).result.headOption ).flatMap {
+//      case Some(_) =>
+//        Future.failed(throw new Exception("email_not_available"))
+//      case None =>
+//        insert(userToInsert.copy(password = passwordHash(userToInsert.password, salt))).map { newUserId =>
+//          val newUser = userToInsert.copy(id = Some(newUserId))
+//          newUser
+//        }
+//    }
   }
 
   def authenticate(email: String, password: String, salt:String)(implicit db:DBAccessProvider) = {
     db.run {
-      table.filter{
+      this.filter{
         u => (u.email === email) && (u.password === passwordHash(password, salt))
       }.result.headOption
     }
