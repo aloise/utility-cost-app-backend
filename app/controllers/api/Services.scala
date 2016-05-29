@@ -38,4 +38,9 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
 
   }
 
+  def update() = apiWithParser( serviceToJson ) { user => service =>
+    jsonStatusOkFuture()
+  }
+
+
 }

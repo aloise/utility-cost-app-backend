@@ -7,6 +7,8 @@ import play.api.db.slick.DatabaseConfigProvider
 import slick.lifted._
 import slick.driver.H2Driver.api._
 
+import scala.concurrent.Future
+
 /**
   * User: aloise
   * Date: 23.05.16
@@ -36,6 +38,20 @@ class PlacesTable(tag:Tag) extends IndexedTable[Place](tag, "places") {
 
 object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new PlacesTable(tag) ) {
 
+  def hasAccess( userId:Int, accessType: ObjectAccess.Access ) = {
+    (
+      for {
+        user <- UsersQuery()
+        userPlace <- UsersPlacesQuery()
+        if
+          ( user.id === userPlace.userId ) &&
+          (
+            ( userPlace.role === UserRole.Admin ) ||
+            ( accessType == ObjectAccess.Read )
+          )
+      } yield user.id
+    ).exists
+  }
 
   def forUser( userId:Int ) = {
     for {
