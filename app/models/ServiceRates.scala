@@ -33,7 +33,7 @@ class ServiceRates(tag:Tag) extends IndexedTable[ServiceRate](tag, "service_rate
   def inactiveFromDate = column[Option[LocalDateTime]]("inactive_from_date")
   def rateData = column[JsValue]("rate_data")
 
-  def * = ( id.?,serviceId,isActive, activeFromDate, inactiveFromDate, rateData ) <> ( ServiceRate.tupled, ServiceRate.unapply )
+  def * = ( id.?,serviceId,isActive, activeFromDate, inactiveFromDate, rateData, isDeleted ) <> ( ServiceRate.tupled, ServiceRate.unapply )
 }
 
 object ServiceRatesQuery extends IndexedTableQuery[ServiceRate, ServiceRates]( tag => new ServiceRates(tag) ) {

@@ -32,7 +32,7 @@ class ServicesTable(tag:Tag) extends IndexedTable[Service](tag, "services") {
   def area = column[String]("area")
   def description = column[String]("description")
 
-  def * = (id.?, title,area, description) <> ( Service.tupled, Service.unapply )
+  def * = (id.?, title,area, description, isDeleted) <> ( Service.tupled, Service.unapply )
 
 }
 

@@ -34,7 +34,7 @@ class PlacesTable(tag:Tag) extends IndexedTable[Place](tag, "places") {
   def zip = column[String]("zip")
   def address = column[String]("address")
 
-  def * = (id.?, title, country, city, state, zip, address) <> (Place.tupled, Place.unapply)
+  def * = (id.?, title, country, city, state, zip, address, isDeleted) <> (Place.tupled, Place.unapply)
 }
 
 object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new PlacesTable(tag) ) {

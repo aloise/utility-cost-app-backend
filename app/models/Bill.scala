@@ -35,12 +35,12 @@ class BillsTable(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
 
   // def address = foreignKey("place_id",placeId,  )(_.id)
 
-  def * = ( id.?, placeId, rateId, ( valueAmount, valueCurrency ), created, paid ).shaped <> (
-    { case ( id, placeId, rateId, value, created, paid ) =>
-      Bill( id, placeId, rateId, value, created, paid )
+  def * = ( id.?, placeId, rateId, ( valueAmount, valueCurrency ), created, paid, isDeleted ).shaped <> (
+    { case ( id, placeId, rateId, value, created, paid, isDeleted ) =>
+      Bill( id, placeId, rateId, value, created, paid, isDeleted )
     },
     { bill:Bill =>
-      Some( ( bill.id, bill.placeId, bill.rateId, ( BigDecimal(bill.value.getAmount), bill.value.getCurrencyUnit.getCode ), bill.created, bill.paid ) )
+      Some( ( bill.id, bill.placeId, bill.rateId, ( BigDecimal(bill.value.getAmount), bill.value.getCurrencyUnit.getCode ), bill.created, bill.paid, bill.isDeleted ) )
     }
   )
 

@@ -37,7 +37,7 @@ class UsersTable(tag: Tag) extends IndexedTable[User](tag, "users") {
 
   def created = column[LocalDateTime]("created")
 
-  def * = (id.?, name, email, password, created) <> (User.tupled, User.unapply)
+  def * = (id.?, name, email, password, created, isDeleted) <> (User.tupled, User.unapply)
 
 }
 
