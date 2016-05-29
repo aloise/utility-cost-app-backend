@@ -18,10 +18,10 @@ import models.helpers.ModelToJsonHelper._
 
 import scala.concurrent.ExecutionContext
 import play.api.Configuration
+import slick.driver.H2Driver.api._
 
 
-
-class Application @Inject()( implicit ec:ExecutionContext, conf:Configuration, db:DBAccessProvider) extends BaseController( ec, db ) {
+class Application @Inject()(implicit ec: ExecutionContext, conf: Configuration, db: DBAccessProvider) extends BaseController(ec, db) {
 
   val loginDataReader = (
     (__ \ "email").read[String] and
@@ -43,7 +43,7 @@ class Application @Inject()( implicit ec:ExecutionContext, conf:Configuration, d
   def login = Action.async(parse.json) { implicit request =>
     request.body.validate(loginDataReader).map { case (email, password, rememberMe) =>
 
-      UsersQuery.authenticate(email, password, getSecretToken() ).map {
+      UsersQuery.authenticate(email, password, getSecretToken()).map {
         case Some(user) => jsonStatusOk.withCookies(getAuthCookie(user, rememberMe.getOrElse(false)))
         case None => Unauthorized(Json.obj("status" -> "error", "message" -> "unauthorized"))
       }.recover { case t: Throwable => recoverJsonException(t) }
@@ -59,10 +59,16 @@ class Application @Inject()( implicit ec:ExecutionContext, conf:Configuration, d
         password = password,
         created = LocalDateTime.now()
       )
-      UsersQuery.signup(u, getSecretToken() ).map(u =>
-        jsonStatusOk(Json.obj("user"->toJson(u))).withCookies(getAuthCookie(u))
-      ).recover{case t:Throwable => recoverJsonException(t)}
-    }recoverTotal recoverJsonErrorsFuture
+
+      db.run(UsersQuery.filter(_.email === email).result.headOption).flatMap {
+        case Some(_) => recoverJsonErrorsFuture("email_not_available")
+        case None =>
+          db.run(UsersQuery.signup(u, getSecretToken())).flatMap(id => db.run(UsersQuery.findById(id))).map {
+            case Some(u) => jsonStatusOk(Json.obj("user" -> toJson(u))).withCookies(getAuthCookie(u))
+            case None => recoverJsonErrors("db_error")
+          }.recover { case t: Throwable => recoverJsonException(t) }
+      }.recover { case t: Throwable => recoverJsonException(t) }
+    } recoverTotal recoverJsonErrorsFuture
   }
 
 

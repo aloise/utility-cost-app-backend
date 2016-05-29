@@ -42,7 +42,10 @@ abstract class BaseController( ec:ExecutionContext, db:DBAccessProvider ) extend
       decryptObjId(token).toOption
     }
 
-    UsersQuery.findById(userIdOpt)(db)
+    db.run(UsersQuery.findById(userIdOpt.getOrElse(-1))).map{
+      case Some(u) => u
+      case None => throw new Exception("user_not_found")
+    }
   }
 
   implicit def onUnauthorized(t: Throwable, request: RequestHeader): Result = {
