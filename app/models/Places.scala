@@ -41,8 +41,8 @@ object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new Plac
   def hasAccess( userId:Int, accessType: ObjectAccess.Access ) = {
     (
       for {
-        user <- UsersQuery()
-        userPlace <- UsersPlacesQuery()
+        user <- UsersQuery
+        userPlace <- UsersPlacesQuery
         if
           ( user.id === userPlace.userId ) &&
           (
