@@ -50,7 +50,7 @@ trait AuthAction {
   def withAuthJsonAsync[T](f: => T => Request[JsValue] => Future[Result])(implicit getObject: RequestHeader => Future[T], onUnauthorized: (Throwable, RequestHeader) => Result): EssentialAction =
     withAuthAsync[JsValue, T](BodyParsers.parse.json)(f)(getObject, onUnauthorized)
 
-  def encryptObjId( id : Int):String =
+  def encryptObjId( id : Int ):String =
     CryptoHelper.encryptAES(id.toString)
 
   def decryptObjId( str:String ):Try[Int] = {

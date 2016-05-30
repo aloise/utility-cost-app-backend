@@ -28,8 +28,7 @@ abstract class BaseController( ec:ExecutionContext, db:DBAccessProvider ) extend
 
 
   def getAuthToken( user: models.User) = {
-
-    encryptObjId(user.id.getOrElse(-1))
+     encryptObjId( user.id.getOrElse(0) )
   }
 
   def getAuthCookie(user: models.User, rememberMe: Boolean = false) = {

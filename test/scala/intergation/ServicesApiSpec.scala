@@ -52,6 +52,8 @@ class ServicesApiSpec extends PlaySpec with OneServerPerSuite with InitialSetup 
     ( js \ "status" ).as[String] mustBe "ok"
     newToken mustBe defined
 
+    authToken = newToken.getOrElse("")
+
   }
 
 
