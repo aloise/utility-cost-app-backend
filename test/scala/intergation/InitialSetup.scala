@@ -16,9 +16,12 @@ import slick.driver.JdbcProfile
 import play.api.test._
 import org.scalatest._
 import org.scalatestplus.play._
-import play.api.{Play, Application}
+import play.api.{Application, Play}
 import play.api.inject.guice._
+import play.api.libs.json.Json
 import play.api.routing._
+
+import scala.collection.immutable.IndexedSeq
 
 /**
   * User: aloise
@@ -44,10 +47,13 @@ trait InitialSetup extends Suite with OneServerPerSuite {
     super.run(testName, args)
   }
 
+  val users: IndexedSeq[User] = for (i <- 1 to 15) yield User(Some(i), "test-name-" + i, "test" + i + "@email.com", UsersQuery.passwordHash("pass" + i, appSalt))
+  val places: IndexedSeq[Place] = for (i <- 1 to 10) yield Place(Some(i), "Place " + i, "country" + i, "city" + i, "state" + i, "zip" + i, "address" + i)
+
   protected val dbSetup = DBIO.seq(
     ( UsersQuery.schema ++ UsersPlacesQuery.schema ++ PlacesQuery.schema ++ ServicesQuery.schema ++ PlacesServicesQuery.schema ++ BillsQuery.schema ++ ServiceRatesQuery.schema ).create,
-    UsersQuery ++= ( for( i <- 1 to 15 ) yield User( Some(i), "test-name-"+i, "test"+i+"@email.com", UsersQuery.passwordHash( "pass"+i, appSalt ) ) ),
-    PlacesQuery ++= ( for( i <- 1 to 10 ) yield Place( Some(i), "Place "+i, "country"+i, "city"+i, "state"+i, "zip"+i, "address"+i ) ),
+    UsersQuery ++= users,
+    PlacesQuery ++= places,
     ServicesQuery ++= ( for( i <- 1 to 10 ) yield Service( Some(i), "Service "+i, "Area"+i, "Description"+i, createdByUserId = i % 2 ) ),
     PlacesServicesQuery ++= ( for( i <- 1 to 10 ) yield PlacesService( i, i ) ),
     UsersPlacesQuery ++= Seq( UsersPlace( 1, 1, UserRole.Admin ), UsersPlace( 1,2, UserRole.Admin ) , UsersPlace(1,3,UserRole.User), UsersPlace(2,1,UserRole.User), UsersPlace(2,2,UserRole.User), UsersPlace(2,5,UserRole.Admin) )
@@ -55,6 +61,16 @@ trait InitialSetup extends Suite with OneServerPerSuite {
 
   def setupInitialData() = {
     db run dbSetup
+  }
+
+  def auth(userTestEmail:String, userTestPassword:String) = {
+    val requestBody = Json.obj("email" -> userTestEmail, "password" -> userTestPassword )
+    val response = await(wsClient.url(s"$apiGateway/users/auth").post(requestBody))
+    val js = Json.parse(response.body)
+
+    val newToken = (js \ "token").asOpt[String]
+
+    newToken.getOrElse("")
   }
 
 }
