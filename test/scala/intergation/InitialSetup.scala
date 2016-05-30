@@ -25,8 +25,7 @@ import play.api.routing._
   * Date: 30.05.16
   * Time: 14:29
   */
-trait InitialSetup extends Suite with OneServerPerTest {
-
+trait InitialSetup extends Suite with OneServerPerSuite {
 
   val db:DBAccessProvider = app.injector.instanceOf[DBAccessProvider]
 
@@ -38,6 +37,10 @@ trait InitialSetup extends Suite with OneServerPerTest {
   val authAction = new AuthAction {}
   val appSalt = authAction.getSecretToken()( app.configuration )
 
+  abstract override def run(testName: Option[String], args: Args): Status = {
+    await( setupInitialData() )
+    super.run(testName, args)
+  }
 
   protected val dbSetup = DBIO.seq(
     ( UsersQuery.schema ++ UsersPlacesQuery.schema ++ PlacesQuery.schema ).create,
@@ -46,7 +49,7 @@ trait InitialSetup extends Suite with OneServerPerTest {
     UsersPlacesQuery ++= Seq( UsersPlace( 1, 1, UserRole.Admin ), UsersPlace( 1,2, UserRole.Admin ) , UsersPlace(1,3,UserRole.User) )
   )
 
-//  await( setupInitialData() )
+
 
   def setupInitialData() = {
     db run dbSetup
