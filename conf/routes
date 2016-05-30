@@ -11,6 +11,7 @@ POST    /api/users/auth                                 controllers.api.Users.au
 GET     /api/users/info                                 controllers.api.Users.info
 
 # Services
+GET     /api/services/:serviceId/access                 controllers.api.Services.hasServiceAccess( serviceId:Int )
 
 GET     /api/services/:serviceId                        controllers.api.Services.get( serviceId:Int )
 POST    /api/services                                   controllers.api.Services.create

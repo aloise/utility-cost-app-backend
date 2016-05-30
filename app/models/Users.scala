@@ -23,7 +23,7 @@ case class User(
      name: String,
      email: String,
      password: String,
-     created: LocalDateTime,
+     created: LocalDateTime = LocalDateTime.now(),
      override val isDeleted:Boolean = false
 ) extends IndexedRow
 

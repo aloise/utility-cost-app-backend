@@ -51,7 +51,7 @@ class UserApiSpec extends PlaySpec with InitialSetup {
     }
 
     "return the user info" in {
-      val response = await(wsClient.url(s"$apiGateway/users/info").withHeaders( "Auth-Token" -> authToken ).get())
+      val response = await(wsClient.url(s"$apiGateway/users/info").withHeaders( authHeaders( authToken):_* ).get())
       val js = Json.parse(response.body)
 
       response.status mustBe OK

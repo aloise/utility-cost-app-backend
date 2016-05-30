@@ -40,7 +40,31 @@ class ServicesApiSpec extends PlaySpec with InitialSetup {
       authToken = newToken.getOrElse("")
 
     }
+
+    "have the service access" in {
+      val response = await( wsClient.url( s"$apiGateway/services/1/access" ).withHeaders( authHeaders(authToken):_* ).get() )
+
+      response.status mustBe OK
+
+      val js = Json.parse(response.body)
+
+      ( js \ "service" \ "access" ).as[Boolean] mustBe true
+
+    }
+
+    "return a service by id" in {
+      val response = await( wsClient.url( s"$apiGateway/services/1" ).withHeaders( authHeaders(authToken):_* ).get() )
+      val js = Json.parse(response.body)
+
+      response.status mustBe OK
+      ( js \ "service" \ "id").as[Int] mustBe 1
+
+    }
+
+
   }
+
+
 
 
 

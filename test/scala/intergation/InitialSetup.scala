@@ -36,6 +36,8 @@ trait InitialSetup extends Suite with OneServerPerSuite {
   val authAction = new AuthAction {}
   val appSalt = authAction.getSecretToken()( app.configuration )
 
+  def authHeaders( authToken:String ) = Seq( "Auth-Token" -> authToken )
+
 
   abstract override def run(testName: Option[String], args: Args): Status = {
     await( setupInitialData() )
@@ -43,13 +45,13 @@ trait InitialSetup extends Suite with OneServerPerSuite {
   }
 
   protected val dbSetup = DBIO.seq(
-    ( UsersQuery.schema ++ UsersPlacesQuery.schema ++ PlacesQuery.schema ).create,
-    UsersQuery ++= ( for( i <- 1 to 15 ) yield User( Some(i), "test-name-"+i, "test"+i+"@email.com", UsersQuery.passwordHash( "pass"+i, appSalt ), LocalDateTime.now() ) ),
+    ( UsersQuery.schema ++ UsersPlacesQuery.schema ++ PlacesQuery.schema ++ ServicesQuery.schema ++ PlacesServicesQuery.schema ++ BillsQuery.schema ++ ServiceRatesQuery.schema ).create,
+    UsersQuery ++= ( for( i <- 1 to 15 ) yield User( Some(i), "test-name-"+i, "test"+i+"@email.com", UsersQuery.passwordHash( "pass"+i, appSalt ) ) ),
     PlacesQuery ++= ( for( i <- 1 to 10 ) yield Place( Some(i), "Place "+i, "country"+i, "city"+i, "state"+i, "zip"+i, "address"+i ) ),
-    UsersPlacesQuery ++= Seq( UsersPlace( 1, 1, UserRole.Admin ), UsersPlace( 1,2, UserRole.Admin ) , UsersPlace(1,3,UserRole.User) )
+    ServicesQuery ++= ( for( i <- 1 to 10 ) yield Service( Some(i), "Service "+i, "Area"+i, "Description"+i, createdByUserId = i % 2 ) ),
+    PlacesServicesQuery ++= ( for( i <- 1 to 10 ) yield PlacesService( i, i ) ),
+    UsersPlacesQuery ++= Seq( UsersPlace( 1, 1, UserRole.Admin ), UsersPlace( 1,2, UserRole.Admin ) , UsersPlace(1,3,UserRole.User), UsersPlace(2,1,UserRole.User), UsersPlace(2,2,UserRole.User), UsersPlace(2,5,UserRole.Admin) )
   )
-
-
 
   def setupInitialData() = {
     db run dbSetup

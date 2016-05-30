@@ -16,7 +16,15 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 abstract class ApiController ( ec:ExecutionContext, db:DBAccessProvider ) extends BaseController( ec, db ) {
 
-  def apiWithAuth(bodyFunc: => models.User => Request[JsValue] => Future[Result]) =
+  def apiWithAuth(bodyFunc: => models.User => Request[_] => Future[Result]) =
+    withAuthAsync[models.User]{ user => request =>
+      bodyFunc( user )( request ).recover{
+        case ex:Throwable => recoverJsonException(ex)
+      }(ec)
+    }( getObject, onUnauthorized )
+
+
+  def apiWithAuthJson(bodyFunc: => models.User => Request[JsValue] => Future[Result]) =
     withAuthJsonAsync[models.User]{ user => request =>
       bodyFunc( user )( request ).recover{
         case ex:Throwable => recoverJsonException(ex)

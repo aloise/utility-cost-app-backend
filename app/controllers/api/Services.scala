@@ -21,6 +21,13 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
   import models.helpers.JsonModels._
 
 
+  def hasServiceAccess( serviceId:Int ) = apiWithAuth{ user => r =>
+    db.run( ServicesQuery.hasAccess( user.id.getOrElse(0), serviceId, ObjectAccess.Read ).result ).map { result =>
+      jsonStatusOk( Json.obj("access" -> result ) )
+    }
+  }
+
+
   def get( serviceId:Int ) = apiWithAuth{ user => r =>
     db.run( ServicesQuery.hasAccess( user.id.getOrElse(0), serviceId, ObjectAccess.Read ).result ).flatMap {
       case true =>
