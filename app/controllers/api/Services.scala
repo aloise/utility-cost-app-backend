@@ -35,7 +35,7 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
     }
   }
 
-  def list(placeId:Int) = apiWithAuth { user => r =>
+  def forPlace(placeId:Int) = apiWithAuth { user => r =>
     db.run {
       ServicesQuery.listByPlace( user.id.getOrElse(0), placeId ).result
     } map { services =>
@@ -54,7 +54,7 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
 
   }
 
-  def update() = apiWithParser( serviceToJson ) { user => service =>
+  def update = apiWithParser( serviceToJson ) { user => service =>
     db.run( ServicesQuery.hasAccess( user.id.getOrElse(0), service.id.getOrElse(0) ).result ).flatMap {
       case true =>
         db.run( ServicesQuery.update( service.copy( isDeleted = false ) ) ).map { _ =>
