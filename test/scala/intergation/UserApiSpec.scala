@@ -1,7 +1,10 @@
 package intergation
 
+import controllers.helpers.AuthAction
+import models.base.DBAccessProvider
 import org.scalatestplus.play.{OneServerPerSuite, OneServerPerTest, PlaySpec}
 import play.api.libs.json.Json
+import play.api.libs.ws.WSClient
 import play.api.test.Helpers._
 
 /**
@@ -10,8 +13,7 @@ import play.api.test.Helpers._
   * Time: 15:28
   */
 
-class UserApiSpec extends PlaySpec with OneServerPerTest with InitialSetup {
-
+class UserApiSpec extends PlaySpec with InitialSetup {
 
   "User Api" must {
 

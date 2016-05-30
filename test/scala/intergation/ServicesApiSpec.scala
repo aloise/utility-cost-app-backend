@@ -7,6 +7,7 @@ package intergation
   */
 
 import akka.stream.Materializer
+import controllers.helpers.AuthAction
 import models.base.DBAccessProvider
 import org.scalatestplus.play._
 import play.api.cache.EhCacheModule
@@ -18,9 +19,7 @@ import play.api.libs.json._
 import play.api.test.Helpers._
 import play.api.libs.functional.syntax._
 
-class ServicesApiSpec extends PlaySpec with OneServerPerTest with InitialSetup {
-
-//  await( setupInitialData() )
+class ServicesApiSpec extends PlaySpec with InitialSetup {
 
   "Service Api" must {
 
