@@ -27,8 +27,10 @@ abstract class BaseController( ec:ExecutionContext, db:DBAccessProvider ) extend
   val userCookiePath = "/"
 
 
-  def getAuthToken( user: models.User) =
+  def getAuthToken( user: models.User) = {
+
     encryptObjId(user.id.getOrElse(-1))
+  }
 
   def getAuthCookie(user: models.User, rememberMe: Boolean = false) = {
     Cookie(authCookieName, getAuthToken(user), if (rememberMe) Some(cookieMaxAge) else None, userCookiePath, httpOnly = false)
@@ -52,17 +54,6 @@ abstract class BaseController( ec:ExecutionContext, db:DBAccessProvider ) extend
     Unauthorized(Json.obj("error" -> true, "message" -> t.getMessage))
   }
 
-  def getSecretToken( )(implicit conf:play.api.Configuration) = {
-    val default = "%APPLICATION_SECRET%"
-
-    val secret = conf.getString("application.secret").getOrElse(default)
-    if( secret == default ){
-      // Log the warning
-    }
-
-    secret
-
-  }
 
 }
 

@@ -59,4 +59,16 @@ trait AuthAction {
     }
   }
 
+  def getSecretToken( )(implicit conf:play.api.Configuration) = {
+    val default = "%APPLICATION_SECRET%"
+
+    val secret = conf.getString("application.secret").getOrElse(default)
+    if( secret == default ){
+      // Log the warning
+    }
+
+    secret
+
+  }
+
 }
