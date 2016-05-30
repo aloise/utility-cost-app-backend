@@ -7,6 +7,9 @@ GET     /                                               controllers.Application.
 
 # REST API
 
+POST    /api/users/auth                                 controllers.api.Users.auth
+GET     /api/users/info                                 controllers.api.Users.info
+
 # Services
 
 GET     /api/services/:serviceId                        controllers.api.Services.get( serviceId:Int )
