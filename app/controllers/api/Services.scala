@@ -20,22 +20,33 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
 
   import models.helpers.JsonModels._
 
+
+  def get( serviceId:Int ) = apiWithAuth{ user => r =>
+    db.run( ServicesQuery.hasAccess( user.id.getOrElse(0), serviceId, ObjectAccess.Read ).result ).flatMap {
+      case true =>
+        db.run( ServicesQuery.filter( s => ( s.id === serviceId ) && !s.isDeleted ).result.headOption ).map {
+          case Some( service ) =>
+            jsonStatusOk( Json.obj("service" -> service ) )
+          case None =>
+            recoverJsonErrors("not_found")
+        }
+      case _ =>
+        recoverJsonErrorsFuture("access_denied")
+    }
+  }
+
   def list(placeId:Int) = apiWithAuth { user => r =>
     db.run {
-      ( for {
-        service <- ServicesQuery
-        servicePlace <- PlacesServicesQuery
-        if service.id === servicePlace.serviceId && !service.isDeleted
-
-      } yield service ).result
+      ServicesQuery.listByPlace( user.id.getOrElse(0), placeId ).result
     } map { services =>
       jsonStatusOk( Json.obj("services" -> services ) )
     }
-
   }
 
+
+
   def create = apiWithParser( JsonModels.serviceToJson ) { user => service =>
-    db.run(ServicesQuery.insert(service.copy( id = None, createdByUserId = user.id.getOrElse(0) )).flatMap { newId =>
+    db.run(ServicesQuery.insert(service.copy( id = None, createdByUserId = user.id.getOrElse(0), isDeleted = false )).flatMap { newId =>
       ServicesQuery.findById(newId)
     }).map { service =>
       jsonStatusOk(Json.obj("service" -> service ))
@@ -46,22 +57,21 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
   def update() = apiWithParser( serviceToJson ) { user => service =>
     db.run( ServicesQuery.hasAccess( user.id.getOrElse(0), service.id.getOrElse(0) ).result ).flatMap {
       case true =>
-        db.run( ServicesQuery.update( service ) ).map { _ =>
+        db.run( ServicesQuery.update( service.copy( isDeleted = false ) ) ).map { _ =>
           jsonStatusOk( Json.obj( "service" -> service ) )
         }
 
       case _ =>
         recoverJsonErrorsFuture("access_denied")
     }
-
-
   }
 
   def delete(serviceId:Int) = apiWithAuth { user => r =>
     db.run( ServicesQuery.hasAccess( user.id.getOrElse(0), serviceId ).result ).flatMap {
       case true =>
-        // db.run( ServicesQuery.filter(_.id === serviceId). ) )
-        jsonStatusOkFuture()
+        db.run( ServicesQuery.filter(_.id === serviceId).map(_.isDeleted).update(true) ).map { count =>
+          jsonStatusOk
+        }
       case _ =>
         recoverJsonErrorsFuture("access_denied")
     }
@@ -72,7 +82,9 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
     // it's allowed only for admin of the place
     db.run( PlacesQuery.hasAccess( placeId, user.id.getOrElse(0) ).result ).flatMap {
       case true =>
-        jsonStatusOkFuture()
+        db.run( PlacesServicesQuery.insert( PlacesService( placeId, serviceId ) ) ).map { _ =>
+          jsonStatusOk
+        }
       case _ =>
         recoverJsonErrorsFuture("access_denied")
     }
@@ -83,8 +95,10 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
 
     db.run( PlacesQuery.hasAccess( placeId, user.id.getOrElse(0) ).result ).flatMap {
       case true =>
-        // PlacesServicesQuery.filter( ps => ( ps. ) )
-        jsonStatusOkFuture()
+        db.run( PlacesServicesQuery.deleteFromPlace( placeId, serviceId ) ).map { _ =>
+          jsonStatusOk
+        }
+
       case _ =>
         recoverJsonErrorsFuture("access_denied")
     }

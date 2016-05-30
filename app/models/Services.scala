@@ -40,19 +40,54 @@ class ServicesTable(tag:Tag) extends IndexedTable[Service](tag, "services") {
 
 object ServicesQuery extends IndexedTableQuery[Service, ServicesTable]( tag => new ServicesTable(tag) ) {
 
-  def hasAccess( userId:Int, serviceId:Int, accessType: ObjectAccess.Access = ObjectAccess.Write  ) = {
+  def hasAccess( userId:Int, serviceId:Int, accessType: ObjectAccess.Access = ObjectAccess.Write  ): Rep[Boolean] = {
     accessType match {
       case ObjectAccess.Write =>
         ServicesQuery.
-          filter(s => (s.createdByUserId === userId) && (s.id === serviceId)).
+          filter(s => (s.createdByUserId === userId) && (s.id === serviceId) && !s.isDeleted ).
           exists
       case ObjectAccess.Read =>
-        LiteralColumn(true)
 
+        hasAccess(userId, serviceId, ObjectAccess.Write) ||
+        (
+          for {
+            service <- ServicesQuery
+            servicePlace <- PlacesServicesQuery
+            place <- PlacesQuery
+            userPlace <- UsersPlacesQuery
+            if
+              !service.isDeleted &&
+              !place.isDeleted &&
+              ( service.id === serviceId ) &&
+              ( service.id === servicePlace.serviceId ) &&
+              ( servicePlace.placeId === place.id ) &&
+              ( place.id === userPlace.placeId ) &&
+              ( userPlace.userId === userId )
 
+          } yield service.id
+        ).exists
     }
 
   }
+
+  def listByPlace( userId: Int, placeId:Int ) = {
+    for {
+      service <- ServicesQuery
+      servicePlace <- PlacesServicesQuery
+      place <- PlacesQuery
+      userPlace <- UsersPlacesQuery
+      if
+        !service.isDeleted &&
+        !place.isDeleted &&
+        ( service.id === servicePlace.serviceId ) &&
+        ( servicePlace.placeId === place.id ) &&
+        ( place.id === userPlace.placeId ) &&
+        ( userPlace.userId === userId ) &&
+        ( place.id === placeId )
+
+    } yield service
+  }
+
 
 }
 
