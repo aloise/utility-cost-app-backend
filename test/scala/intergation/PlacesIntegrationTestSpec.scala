@@ -29,7 +29,7 @@ class PlacesIntegrationTestSpec extends PlaySpec with InitialSetup{
     "return list of 3 items for first user" in {
       val authToken = auth(userTestEmail, userTestPassword)
       val response = await(wsClient.url(s"$apiGateway/places").withHeaders( "Auth-Token" -> authToken ).get())
-      println(response.body)
+
       response.status mustBe OK
       val js = Json.parse(response.body)
       ( js \ "places" ).as[Array[JsValue]] should have length 3
@@ -91,7 +91,7 @@ class PlacesIntegrationTestSpec extends PlaySpec with InitialSetup{
       deleteResponse.status mustBe OK
 
       val response = await(wsClient.url(s"$apiGateway/places/2").withHeaders( "Auth-Token" -> authToken ).get())
-      println(response.body)
+
       response.status mustBe BAD_REQUEST
 
       val js = Json.parse(response.body)
