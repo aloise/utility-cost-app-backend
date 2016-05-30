@@ -3,9 +3,27 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index
+GET     /                                               controllers.Application.index
+
+# REST API
+
+POST    /api/users/auth                                 controllers.api.Users.auth
+GET     /api/users/info                                 controllers.api.Users.info
+
+# Services
+
+GET     /api/services/:serviceId                        controllers.api.Services.get( serviceId:Int )
+POST    /api/services                                   controllers.api.Services.create
+PUT     /api/services                                   controllers.api.Services.update
+DELETE  /api/services/:serviceId                        controllers.api.Services.delete( serviceId:Int )
+
+GET     /api/places/:placeId/services                   controllers.api.Services.forPlace( placeId:Int )
+POST    /api/places/:placeId/services/:serviceId        controllers.api.Services.attachToPlace( serviceId:Int, placeId:Int )
+DELETE  /api/places/:placeId/services/:serviceId        controllers.api.Services.detachFromPlace( serviceId:Int, placeId:Int )
+
+
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /assets/*file                                   controllers.Assets.at(path="/public", file)
 
     

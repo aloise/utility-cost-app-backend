@@ -37,6 +37,8 @@ class UsersPlaces(tag:Tag) extends BaseTable[UsersPlace](tag, "users_places") {
   def placeId = column[Int]("place_id")
   def role = column[UserRole.Value]("role")
 
+  def pk = primaryKey("userId_placeId", (userId, placeId))
+
   def * = (userId, placeId, role) <> (UsersPlace.tupled, UsersPlace.unapply)
 
 }
