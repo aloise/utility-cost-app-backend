@@ -23,7 +23,7 @@ case class Service(
   title:String,
   area:String,
   description:String,
-  createdByUserId:Int
+  createdByUserId:Int,
   override val isDeleted:Boolean = false
 ) extends IndexedRow
 
