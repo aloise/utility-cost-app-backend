@@ -43,8 +43,10 @@ object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new Plac
     (
       for {
         user <- UsersQuery
+        place <- PlacesQuery
         userPlace <- UsersPlacesQuery
         if
+          (place.id === placeId && !place.isDeleted) &&
           ( userPlace.placeId === placeId ) &&
           ( user.id === userPlace.userId && !user.isDeleted ) &&
           (
@@ -53,6 +55,25 @@ object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new Plac
           )
       } yield user.id
     ).exists
+  }
+
+  def findPlaceWithAccess(placeId:Int, userId:Int, accessType: ObjectAccess.Access = ObjectAccess.Write ) = {
+    (
+      for {
+        user <- UsersQuery
+        place <- PlacesQuery
+        userPlace <- UsersPlacesQuery
+        if
+          (place.id === placeId && !place.isDeleted) &&
+          ( userPlace.placeId === placeId ) &&
+          ( user.id === userPlace.userId && !user.isDeleted ) &&
+          (
+            ( userPlace.role === UserRole.Admin ) ||
+            ( accessType == ObjectAccess.Read )
+          )
+      } yield place
+
+    ).result.headOption
   }
 
   def forUser( userId:Int ) = {
