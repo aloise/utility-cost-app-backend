@@ -53,6 +53,7 @@ class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ex
 
 
   }
+
   def delete = apiWithParser(JsonModels.placeToJson) { user => place =>
 
     place.id match {

@@ -15,6 +15,7 @@ import slick.driver.H2Driver.api._
 case class Bill(
   override val id:Option[Int] = None,
   placeId:Int,
+  serviceId:Int,
   rateId:Int,
   value:Money,
   created: LocalDateTime,
@@ -26,6 +27,7 @@ case class Bill(
 class BillsTable(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
 
   def placeId = column[Int]("place_id")
+  def serviceId = column[Int]("service_id")
   def rateId = column[Int]("rate_id")
   def created = column[LocalDateTime]("created")
   def paid = column[Option[LocalDateTime]]("paid")
@@ -33,14 +35,13 @@ class BillsTable(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
   def valueAmount = column[BigDecimal]("value_amount")
   def valueCurrency = column[String]("value_currency")
 
-  // def address = foreignKey("place_id",placeId,  )(_.id)
 
-  def * = ( id.?, placeId, rateId, ( valueAmount, valueCurrency ), created, paid, isDeleted ).shaped <> (
-    { case ( id, placeId, rateId, value, created, paid, isDeleted ) =>
-      Bill( id, placeId, rateId, value, created, paid, isDeleted )
+  def * = ( id.?, placeId, serviceId, rateId, ( valueAmount, valueCurrency ), created, paid, isDeleted ).shaped <> (
+    { case ( id, placeId, serviceId, rateId, value, created, paid, isDeleted ) =>
+      Bill( id, placeId, serviceId, rateId, value, created, paid, isDeleted )
     },
     { bill:Bill =>
-      Some( ( bill.id, bill.placeId, bill.rateId, ( BigDecimal(bill.value.getAmount), bill.value.getCurrencyUnit.getCode ), bill.created, bill.paid, bill.isDeleted ) )
+      Some( ( bill.id, bill.placeId, bill.serviceId, bill.rateId, ( BigDecimal(bill.value.getAmount), bill.value.getCurrencyUnit.getCode ), bill.created, bill.paid, bill.isDeleted ) )
     }
   )
 
