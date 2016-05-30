@@ -61,11 +61,15 @@ class ServicesApiSpec extends PlaySpec with InitialSetup {
 
     }
 
+    "return a list of services by place" in {
+      // should return 3 services
+      val response = await( wsClient.url( s"$apiGateway/places/1/services" ).withHeaders( authHeaders(authToken):_* ).get() )
+      val js = Json.parse(response.body)
+
+      response.status mustBe OK
+      ( js \ "services" \\ "id" ).map( _.as[Int] ) must contain allOf( 1,2,3 )
+
+    }
 
   }
-
-
-
-
-
 }
