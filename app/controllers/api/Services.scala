@@ -62,9 +62,15 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
   }
 
   def update = apiWithParser( serviceToJson ) { user => service =>
-    db.run( ServicesQuery.hasAccess( user.id.getOrElse(0), service.id.getOrElse(0) ).result ).flatMap {
-      case true =>
-        db.run( ServicesQuery.update( service.copy( isDeleted = false ) ) ).map { _ =>
+    db.run(
+      ServicesQuery.hasAccess( user.id.getOrElse(0), service.id.getOrElse(0) ).result.zip(
+        ServicesQuery.filter( _.id === service.id.getOrElse(0) ).result.headOption
+      )
+    ).flatMap {
+      case ( true, Some( existingServiceData ) ) =>
+        val updatedService = service.copy( isDeleted = false, createdByUserId = existingServiceData.createdByUserId )
+
+        db.run( ServicesQuery.update( updatedService.id.getOrElse(0), updatedService ) ).map { _ =>
           jsonStatusOk( Json.obj( "service" -> service ) )
         }
 
