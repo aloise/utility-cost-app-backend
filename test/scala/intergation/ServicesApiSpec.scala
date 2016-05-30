@@ -27,10 +27,10 @@ class ServicesApiSpec extends PlaySpec with OneServerPerSuite {
   val apiGateway = s"http://$address/api/"
 
   "server should return a homepage" in {
-
     val response = await(wsClient.url(s"http://$address/").get())
-
     response.status mustBe OK
   }
+
+
 
 }
