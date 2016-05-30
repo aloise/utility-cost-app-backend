@@ -48,7 +48,7 @@ class ServicesApiSpec extends PlaySpec with InitialSetup {
 
       val js = Json.parse(response.body)
 
-      ( js \ "service" \ "access" ).as[Boolean] mustBe true
+      ( js \ "access" ).as[Boolean] mustBe true
 
     }
 
