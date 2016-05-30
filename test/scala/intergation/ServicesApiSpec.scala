@@ -23,9 +23,12 @@ class ServicesApiSpec extends PlaySpec with InitialSetup {
 
   "Service Api" must {
 
+
+    var authToken:String = ""
+
     "authorize the user" in {
       val requestBody = Json.obj("email" -> "test1@email.com", "password" -> "pass1")
-      val response = await(wsClient.url(s"http://$address/api/users/auth").post(requestBody))
+      val response = await(wsClient.url(s"$apiGateway/users/auth").post(requestBody))
       val js = Json.parse(response.body)
 
       val newToken = (js \ "token").asOpt[String]

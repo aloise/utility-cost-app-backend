@@ -30,12 +30,12 @@ trait InitialSetup extends Suite with OneServerPerSuite {
   val db:DBAccessProvider = app.injector.instanceOf[DBAccessProvider]
 
   val address =  s"localhost:$port"
-  val apiGateway = s"http://$address/api/"
+  val apiGateway = s"http://$address/api"
 
-  var authToken:String = ""
   val wsClient = app.injector.instanceOf[WSClient]
   val authAction = new AuthAction {}
   val appSalt = authAction.getSecretToken()( app.configuration )
+
 
   abstract override def run(testName: Option[String], args: Args): Status = {
     await( setupInitialData() )

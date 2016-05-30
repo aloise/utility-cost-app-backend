@@ -15,16 +15,29 @@ import play.api.test.Helpers._
 
 class UserApiSpec extends PlaySpec with InitialSetup {
 
+
+
   "User Api" must {
 
-    "server should return a homepage" in {
-      val response = await(wsClient.url(s"http://$address/").get())
-      response.status mustBe OK
+
+    var authToken:String = ""
+    val userTestEmail = "test1@email.com"
+    val userTestPassword = "pass1"
+
+    "should not authorize the user with invalid password" in {
+      val requestBody = Json.obj("email" ->  userTestEmail, "password" -> userTestPassword*2 )
+      val response = await(wsClient.url(s"$apiGateway/users/auth").post(requestBody))
+      val js = Json.parse(response.body)
+
+      response.status must be !== OK
+      ( js \ "status" ).as[String] mustBe "error"
+      ( js \ "message" ).as[String] mustBe "unauthorized"
+
     }
 
     "authorize the user" in {
-      val requestBody = Json.obj("email" -> "test1@email.com", "password" -> "pass1")
-      val response = await(wsClient.url(s"http://$address/api/users/auth").post(requestBody))
+      val requestBody = Json.obj("email" -> userTestEmail, "password" -> userTestPassword )
+      val response = await(wsClient.url(s"$apiGateway/users/auth").post(requestBody))
       val js = Json.parse(response.body)
 
       val newToken = (js \ "token").asOpt[String]
@@ -37,13 +50,16 @@ class UserApiSpec extends PlaySpec with InitialSetup {
 
     }
 
-    "should not authorize the user with invalid password" in {
-      val requestBody = Json.obj("email" -> "test1@email.com", "password" -> "OLOLOLOL")
-      val response = await(wsClient.url(s"http://$address/api/users/auth").post(requestBody))
+    "return the user info" in {
+      val response = await(wsClient.url(s"$apiGateway/users/info").withHeaders( "Auth-Token" -> authToken ).get())
+      val js = Json.parse(response.body)
 
-      response.status must be !== OK
+      response.status mustBe OK
+      ( js \ "status" ).as[String] mustBe "ok"
+      ( js \ "user" \ "email" ).as[String] mustBe userTestEmail
 
     }
+
   }
 
 }
