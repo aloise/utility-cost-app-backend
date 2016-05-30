@@ -48,7 +48,7 @@ object ServicesQuery extends IndexedTableQuery[Service, ServicesTable]( tag => n
           exists
       case ObjectAccess.Read =>
 
-        // hasAccess(userId, serviceId, ObjectAccess.Write) ||
+        hasAccess(userId, serviceId, ObjectAccess.Write) ||
         (
           for {
             service <- ServicesQuery
