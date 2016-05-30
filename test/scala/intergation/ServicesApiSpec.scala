@@ -18,42 +18,26 @@ import play.api.libs.json._
 import play.api.test.Helpers._
 import play.api.libs.functional.syntax._
 
-class ServicesApiSpec extends PlaySpec with OneServerPerSuite with InitialSetup {
+class ServicesApiSpec extends PlaySpec with OneServerPerTest with InitialSetup {
 
-  // Override app if you need an Application with other than
-  // default parameters.
+//  await( setupInitialData() )
 
-  val wsClient = app.injector.instanceOf[WSClient]
+  "Service Api" must {
 
-  val db = app.injector.instanceOf[DBAccessProvider]
+    "authorize the user" in {
+      val requestBody = Json.obj("email" -> "test1@email.com", "password" -> "pass1")
+      val response = await(wsClient.url(s"http://$address/api/users/auth").post(requestBody))
+      val js = Json.parse(response.body)
 
-  val address =  s"localhost:$port"
-  val apiGateway = s"http://$address/api/"
+      val newToken = (js \ "token").asOpt[String]
 
-  var authToken:String = ""
+      response.status mustBe OK
+      (js \ "status").as[String] mustBe "ok"
+      newToken mustBe defined
 
+      authToken = newToken.getOrElse("")
 
-  // setup the DB data
-  await( setupInitialData() )
-
-  "server should return a homepage" in {
-    val response = await(wsClient.url(s"http://$address/").get())
-    response.status mustBe OK
-  }
-
-  "authorize the user" in {
-    val requestBody = Json.obj( "email" -> "test1@email.com", "password" -> "pass1" )
-    val response = await( wsClient.url(s"http://$address/api/users/auth").post(requestBody) )
-    val js = Json.parse( response.body )
-
-    val newToken = ( js \ "token" ).asOpt[String]
-
-    response.status mustBe OK
-    ( js \ "status" ).as[String] mustBe "ok"
-    newToken mustBe defined
-
-    authToken = newToken.getOrElse("")
-
+    }
   }
 
 

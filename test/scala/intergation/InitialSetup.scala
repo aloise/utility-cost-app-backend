@@ -5,8 +5,11 @@ import java.time.LocalDateTime
 import controllers.helpers.AuthAction
 import models.{UserRole, UsersPlace, _}
 import models.base.DBAccessProvider
-import org.scalatestplus.play.OneServerPerSuite
+import org.scalatest.BeforeAndAfterAll
+import org.scalatestplus.play.{OneServerPerSuite, OneServerPerTest}
 import play.api.db.slick.DatabaseConfigProvider
+import play.api.libs.ws.WSClient
+import play.api.test.Helpers._
 import slick.jdbc.JdbcBackend.Database
 import slick.driver.H2Driver.api._
 import slick.driver.JdbcProfile
@@ -16,10 +19,16 @@ import slick.driver.JdbcProfile
   * Date: 30.05.16
   * Time: 14:29
   */
-trait InitialSetup { this: OneServerPerSuite =>
+trait InitialSetup { this: OneServerPerTest =>
 
-  val db:DBAccessProvider
+  val wsClient = app.injector.instanceOf[WSClient]
 
+  val db = app.injector.instanceOf[DBAccessProvider]
+
+  val address =  s"localhost:$port"
+  val apiGateway = s"http://$address/api/"
+
+  var authToken:String = ""
 
   val authAction = new AuthAction {}
   val appSalt = authAction.getSecretToken()( app.configuration )
@@ -30,6 +39,8 @@ trait InitialSetup { this: OneServerPerSuite =>
     PlacesQuery ++= ( for( i <- 1 to 10 ) yield Place( Some(i), "Place "+i, "country"+i, "city"+i, "state"+i, "zip"+i, "address"+i ) ),
     UsersPlacesQuery ++= Seq( UsersPlace( 1, 1, UserRole.Admin ), UsersPlace( 1,2, UserRole.Admin ) , UsersPlace(1,3,UserRole.User) )
   )
+
+  await( setupInitialData() )
 
   def setupInitialData() = {
     db run dbSetup
