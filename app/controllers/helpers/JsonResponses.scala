@@ -19,49 +19,51 @@ trait JsonResponses {
   }
 
 
-  protected def recoverJsonErrorsFuture( errors:JsError ):Future[Result] =
+  def recoverJsonErrorsFuture( errors:JsError ):Future[Result] =
     Future.successful( BadRequest(Json.obj(
       "status" ->"error",
       "message" -> JsError.toJson(errors)
     )) )
 
-  protected def recoverJsonErrorsFuture( error:String, description: String = null ):Future[Result] =
+  def jsonErrorAccessDenied = recoverJsonErrorsFuture("access_denied")
+
+  def recoverJsonErrorsFuture( error:String, description: String = null ):Future[Result] =
     Future.successful( BadRequest(Json.obj("status" ->"error", "message" -> error, "description" -> description )))
 
-  protected def recoverJsonExceptionFuture( error:Throwable ):Future[Result] =
+  def recoverJsonExceptionFuture( error:Throwable ):Future[Result] =
     Future.successful( BadRequest( Json.toJson( error )) )
 
-  protected def recoverJsonException( error:Throwable ):Result =
+  def recoverJsonException( error:Throwable ):Result =
     BadRequest( Json.toJson(error) )
 
-  protected def recoverJsonErrors( errors:JsError ):Result =
+  def recoverJsonErrors( errors:JsError ):Result =
     recoverJsonErrors( errors, Json.obj())
 
 
-  protected def recoverJsonErrors( errors:JsError, additionalErrorObj : JsObject ):Result =
+  def recoverJsonErrors( errors:JsError, additionalErrorObj : JsObject ):Result =
     BadRequest(Json.obj(
       "status" -> "error",
       "message" -> JsError.toJson(errors )
     ) ++ additionalErrorObj )
 
-  protected def recoverJsonErrors( error:String, description: String = null ):Result =
+  def recoverJsonErrors( error:String, description: String = null ):Result =
     recoverJsonErrors(error, Json.obj( "description" -> description ))
 
-  protected def recoverJsonErrors( error:String, additionalErrorObj : JsObject ):Result =
+  def recoverJsonErrors( error:String, additionalErrorObj : JsObject ):Result =
     BadRequest(Json.obj( "status" -> "error", "message" -> error ) ++ additionalErrorObj )
 
 
-  protected def jsonStatusOk:Result = jsonStatusOk(Json.obj())
+  def jsonStatusOk:Result = jsonStatusOk(Json.obj())
 
-  protected def jsonStatusAccepted:Result = jsonStatusAccepted(Json.obj())
+  def jsonStatusAccepted:Result = jsonStatusAccepted(Json.obj())
 
-  protected def jsonStatusOk( additionalData : JsObject ) =
+  def jsonStatusOk( additionalData : JsObject ) =
     Ok(Json.obj("status" -> "ok") ++ additionalData)
 
-  protected def jsonStatusAccepted( additionalData : JsObject ) =
+  def jsonStatusAccepted( additionalData : JsObject ) =
     Accepted(Json.obj("status" -> "ok") ++ additionalData)
 
-  protected def jsonStatusOkFuture( additionalData : JsObject = Json.obj() ) =
+  def jsonStatusOkFuture( additionalData : JsObject = Json.obj() ) =
     Future.successful( Ok(Json.obj("status" -> "ok") ++ additionalData) )
   
 }

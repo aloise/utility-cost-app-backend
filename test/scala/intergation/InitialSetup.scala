@@ -57,7 +57,8 @@ trait InitialSetup extends Suite with OneServerPerSuite {
     ServicesQuery ++= ( for( i <- 1 to 10 ) yield Service( Some(i), "Service "+i, "Area"+i, "Description"+i, createdByUserId = i % 2 ) ),
     PlacesServicesQuery ++= ( for( i <- 1 to 10 ) yield PlacesService( i, i ) ),
     PlacesServicesQuery ++= Seq( PlacesService( 1, 2 ), PlacesService( 1, 3 ) ),
-    UsersPlacesQuery ++= Seq( UsersPlace( 1, 1, UserRole.Admin ), UsersPlace( 1,2, UserRole.Admin ) , UsersPlace(1,3,UserRole.User), UsersPlace(2,1,UserRole.User), UsersPlace(2,2,UserRole.User), UsersPlace(2,5,UserRole.Admin) )
+    UsersPlacesQuery ++= Seq( UsersPlace( 1, 1, UserRole.Admin ), UsersPlace( 1,2, UserRole.Admin ) , UsersPlace(1,3,UserRole.User), UsersPlace(2,1,UserRole.User), UsersPlace(2,2,UserRole.User), UsersPlace(2,5,UserRole.Admin) ),
+    ServiceRatesQuery ++= Seq( ServiceRate( Some(1), 1, true ), ServiceRate( Some(2), 1, false, LocalDateTime.now().minusDays(30), Some( LocalDateTime.now() ) ) , ServiceRate( Some(3), 2, true ) )
   )
 
   def setupInitialData() = {

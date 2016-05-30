@@ -40,7 +40,11 @@ class ServicesTable(tag:Tag) extends IndexedTable[Service](tag, "services") {
 
 object ServicesQuery extends IndexedTableQuery[Service, ServicesTable]( tag => new ServicesTable(tag) ) {
 
-  def hasAccess( userId:Int, serviceId:Int, accessType: ObjectAccess.Access = ObjectAccess.Write  ): Rep[Boolean] = {
+  def hasAccess( userId:Int, serviceId:Int, accessType: ObjectAccess.Access ): Rep[Boolean] = {
+    hasAccess( LiteralColumn( userId ), LiteralColumn( serviceId ), accessType: ObjectAccess.Access )
+  }
+
+  def hasAccess( userId:Rep[Int], serviceId:Rep[Int], accessType: ObjectAccess.Access ): Rep[Boolean] = {
     accessType match {
       case ObjectAccess.Write =>
         ServicesQuery.

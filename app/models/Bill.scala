@@ -16,7 +16,7 @@ case class Bill(
   override val id:Option[Int] = None,
   placeId:Int,
   serviceId:Int,
-  rateId:Int,
+  serviceRateId:Int,
   value:Money,
   created: LocalDateTime,
   paid:Option[LocalDateTime],
@@ -28,7 +28,7 @@ class BillsTable(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
 
   def placeId = column[Int]("place_id")
   def serviceId = column[Int]("service_id")
-  def rateId = column[Int]("rate_id")
+  def serviceRateId = column[Int]("service_rate_id")
   def created = column[LocalDateTime]("created")
   def paid = column[Option[LocalDateTime]]("paid")
 
@@ -36,12 +36,12 @@ class BillsTable(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
   def valueCurrency = column[String]("value_currency")
 
 
-  def * = ( id.?, placeId, serviceId, rateId, ( valueAmount, valueCurrency ), created, paid, isDeleted ).shaped <> (
-    { case ( id, placeId, serviceId, rateId, value, created, paid, isDeleted ) =>
-      Bill( id, placeId, serviceId, rateId, value, created, paid, isDeleted )
+  def * = ( id.?, placeId, serviceId, serviceRateId, ( valueAmount, valueCurrency ), created, paid, isDeleted ).shaped <> (
+    { case ( id, placeId, serviceId, serviceRateId, value, created, paid, isDeleted ) =>
+      Bill( id, placeId, serviceId, serviceRateId, value, created, paid, isDeleted )
     },
     { bill:Bill =>
-      Some( ( bill.id, bill.placeId, bill.serviceId, bill.rateId, ( BigDecimal(bill.value.getAmount), bill.value.getCurrencyUnit.getCode ), bill.created, bill.paid, bill.isDeleted ) )
+      Some( ( bill.id, bill.placeId, bill.serviceId, bill.serviceRateId, ( BigDecimal(bill.value.getAmount), bill.value.getCurrencyUnit.getCode ), bill.created, bill.paid, bill.isDeleted ) )
     }
   )
 

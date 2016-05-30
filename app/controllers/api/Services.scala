@@ -1,7 +1,6 @@
 package controllers.api
 
 import javax.inject.Inject
-
 import models._
 import models.base.{DBAccessProvider, ObjectAccess}
 import models.helpers.JsonModels
@@ -10,6 +9,7 @@ import models.helpers.SlickColumnExtensions._
 import play.api.libs.json.Json
 
 import scala.concurrent.ExecutionContext
+
 
 /**
   * User: aloise
@@ -38,7 +38,7 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
             recoverJsonErrors("not_found")
         }
       case _ =>
-        recoverJsonErrorsFuture("access_denied")
+        jsonErrorAccessDenied
     }
   }
 
@@ -63,7 +63,7 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
 
   def update = apiWithParser( serviceToJson ) { user => service =>
     db.run(
-      ServicesQuery.hasAccess( user.id.getOrElse(0), service.id.getOrElse(0) ).result.zip(
+      ServicesQuery.hasAccess( user.id.getOrElse(0), service.id.getOrElse(0), ObjectAccess.Write ).result.zip(
         ServicesQuery.filter( _.id === service.id.getOrElse(0) ).result.headOption
       )
     ).flatMap {
@@ -75,18 +75,18 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
         }
 
       case _ =>
-        recoverJsonErrorsFuture("access_denied")
+        jsonErrorAccessDenied
     }
   }
 
   def delete(serviceId:Int) = apiWithAuth { user => r =>
-    db.run( ServicesQuery.hasAccess( user.id.getOrElse(0), serviceId ).result ).flatMap {
+    db.run( ServicesQuery.hasAccess( user.id.getOrElse(0), serviceId, ObjectAccess.Write ).result ).flatMap {
       case true =>
         db.run( ServicesQuery.filter(_.id === serviceId).map(_.isDeleted).update(true) ).map { count =>
           jsonStatusOk
         }
       case _ =>
-        recoverJsonErrorsFuture("access_denied")
+        jsonErrorAccessDenied
     }
   }
 
@@ -99,7 +99,7 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
           jsonStatusOk
         }
       case _ =>
-        recoverJsonErrorsFuture("access_denied")
+        jsonErrorAccessDenied
     }
   }
 
@@ -113,7 +113,7 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
         }
 
       case _ =>
-        recoverJsonErrorsFuture("access_denied")
+        jsonErrorAccessDenied
     }
   }
 

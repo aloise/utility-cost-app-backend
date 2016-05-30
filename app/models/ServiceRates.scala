@@ -2,12 +2,13 @@ package models
 
 import java.time.LocalDateTime
 import javax.inject.Inject
+
 import models.base._
 import models.helpers._
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.Codecs
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.{JsObject, JsValue}
+import play.api.libs.json.{JsNull, JsObject, JsValue}
 import slick.driver.H2Driver.api._
 import models.helpers.SlickColumnExtensions._
 
@@ -17,14 +18,18 @@ import models.helpers.SlickColumnExtensions._
   * Time: 22:44
   */
 case class ServiceRate(
-  override val id:Option[Int],
-  serviceId:Int,
-  isActive: Boolean,
-  activeFromDate:LocalDateTime,
-  inactiveFromDate:Option[LocalDateTime],
-  rateData:JsValue,
-  override val isDeleted:Boolean = false
-) extends IndexedRow
+    override val id:Option[Int],
+    serviceId:Int,
+    isActive: Boolean,
+    activeFromDate:LocalDateTime = LocalDateTime.now(),
+    inactiveFromDate:Option[LocalDateTime] = None,
+    rateData:JsValue = JsNull,
+    override val isDeleted:Boolean = false
+) extends IndexedRow {
+
+  def calculateAmount( previousValue:BigDecimal, nextValue:BigDecimal ) = ???
+
+}
 
 class ServiceRates(tag:Tag) extends IndexedTable[ServiceRate](tag, "service_rates") {
   def serviceId = column[Int]("service_id")
@@ -37,6 +42,30 @@ class ServiceRates(tag:Tag) extends IndexedTable[ServiceRate](tag, "service_rate
 }
 
 object ServiceRatesQuery extends IndexedTableQuery[ServiceRate, ServiceRates]( tag => new ServiceRates(tag) ) {
+
+  def hasAccess( userId:Int, serviceRateId:Int, accessType: ObjectAccess.Access ): Rep[Boolean] = {
+    hasAccess( LiteralColumn(userId), LiteralColumn(serviceRateId), accessType )
+  }
+
+  def hasAccess( userId:Rep[Int], serviceRateId:Rep[Int], accessType: ObjectAccess.Access  ): Rep[Boolean] = {
+    (
+      for {
+        serviceRate <- ServiceRatesQuery
+        if
+          !serviceRate.isDeleted &&
+          ( serviceRate.id === serviceRateId ) &&
+          ServicesQuery.hasAccess( userId, serviceRate.id, accessType )
+      } yield serviceRate.id
+    ).exists
+  }
+
+
+  def forService(serviceId: Int, includeInactive: Boolean) = {
+    for {
+      serviceRate <- this
+      if ( serviceRate.serviceId === serviceId ) && ( serviceRate.isActive || LiteralColumn( includeInactive ) )
+    } yield serviceRate
+  }
 
 }
 
