@@ -1,18 +1,12 @@
 
 import java.time.LocalDateTime
 
-import akka.util.Timeout
 import models._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.play._
-import play.api.db.slick.DatabaseConfigProvider
-import slick.jdbc.JdbcBackend.Database
 import slick.driver.H2Driver.api._
-import slick.driver.JdbcProfile
-
-import scala.concurrent.Await
-import scala.concurrent.duration._
+import slick.jdbc.JdbcBackend.Database
 
 
 /**
