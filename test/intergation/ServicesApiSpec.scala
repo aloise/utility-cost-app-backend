@@ -131,7 +131,7 @@ class ServicesApiSpec extends PlaySpec with InitialSetup {
       val js = Json.parse(response.body)
 
       response.status mustBe OK
-      ( js \ "services" \\ "id" ).map( _.as[Int] ) must contain allOf( 1,2,3, newServiceId )
+      ( js \ "services" \\ "id" ).map( _.as[Int] ).toSet mustBe Set( 1,2,3, newServiceId )
 
     }
 
@@ -145,7 +145,7 @@ class ServicesApiSpec extends PlaySpec with InitialSetup {
       val js = Json.parse(response.body)
 
       response.status mustBe OK
-      ( js \ "services" \\ "id" ).map( _.as[Int] ) must contain allOf( 1,2,3 )
+      ( js \ "services" \\ "id" ).map( _.as[Int] ).toSet mustBe Set( 1,2,3 )
 
     }
 
@@ -162,7 +162,7 @@ class ServicesApiSpec extends PlaySpec with InitialSetup {
       getResponse.status must be !== OK
 
       val placeServices = await( wsClient.url( s"$apiGateway/places/1/services" ).withHeaders( authHeaders(authToken):_* ).get() )
-      ( Json.parse( placeServices.body ) \ "services" \\ "id" ).map( _.as[Int] ) must contain allOf( 1,2,3 )
+      ( Json.parse( placeServices.body ) \ "services" \\ "id" ).map( _.as[Int] ).toSet mustBe Set( 1,2,3 )
 
     }
 

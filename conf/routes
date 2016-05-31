@@ -30,12 +30,15 @@ POST    /api/places                                     controllers.api.Places.c
 PUT     /api/places                                     controllers.api.Places.update
 DELETE  /api/places/:placeId                            controllers.api.Places.delete(placeId:Int)
 
+
 # Rates API
 
-GET    /api/rates/:rateId                               controllers.api.ServiceRates.get(rateId:Int)
-GET    /api/services/:serviceId/rates                   controllers.api.ServiceRates.listForService(serviceId:Int, includeInactive:Int ?= 0 )
-POST   /api/rates                                       controllers.api.ServiceRates.create
-
+GET     /api/rates/:rateId                               controllers.api.ServiceRates.get(rateId:Int)
+GET     /api/services/:serviceId/rates                   controllers.api.ServiceRates.listForService(serviceId:Int, includeInactive:Int ?= 0 )
+POST    /api/rates                                       controllers.api.ServiceRates.create
+PUT     /api/rates                                       controllers.api.ServiceRates.update
+DELETE  /api/rates/:rateId                               controllers.api.ServiceRates.delete(rateId:Int)
+PUT     /api/rates/:rateId/active/:isActive              controllers.api.ServiceRates.setActive(rateId:Int, isActive:Int)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                                   controllers.Assets.at(path="/public", file)

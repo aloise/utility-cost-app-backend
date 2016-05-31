@@ -72,7 +72,7 @@ class ServiceRatesApiSpec extends PlaySpec with InitialSetup {
     "create a new service rate" in {
       val serviceRateJson = Json.obj(
         "serviceId" -> 1,
-        "isActive" -> false,
+        "isActive" -> true,
         "activeFromDate" -> LocalDateTime.now(),
         "rateData" -> Json.obj(),
         "isDeleted" -> false
@@ -98,6 +98,81 @@ class ServiceRatesApiSpec extends PlaySpec with InitialSetup {
       }
 
     }
+
+    "update existing service rate" in {
+      val serviceJson = Json.obj(
+        "id" -> 1,
+        "serviceId" -> 1,
+        "isActive" -> true,
+        "activeFromDate" -> LocalDateTime.now(),
+        "rateData" -> Json.obj("x" -> 2 ),
+        "isDeleted" -> false
+      )
+
+      val response = await( wsClient.url( s"$apiGateway/rates" ).withHeaders( authHeaders(authToken):_* ).put(serviceJson) )
+      val js = Json.parse( response.body )
+
+      response.status mustBe OK
+      ( js \ "serviceRate" ).as[JsObject] mustBe serviceJson
+
+    }
+
+    "return a list of all rates for service with new one" in {
+      val response = await( wsClient.url( s"$apiGateway/services/1/rates" ).withQueryString( "includeInactive" -> "1" ).withHeaders( authHeaders(authToken):_* ).get() )
+      val js = Json.parse(response.body)
+
+      response.status mustBe OK
+      ( js \ "serviceRates" \\ "id").map(_.as[Int]).toSet mustBe Set( 1,2, newServiceRateId )
+
+    }
+
+    "set service rate active status to 0" in {
+
+      val responsePut = await( wsClient.url( s"$apiGateway/rates/1/active/0" ).withHeaders( authHeaders(authToken):_* ).put("") )
+      responsePut.status mustBe OK
+
+      val response = await( wsClient.url( s"$apiGateway/rates/1" ).withHeaders( authHeaders(authToken):_* ).get() )
+      val js = Json.parse(response.body)
+
+      response.status mustBe OK
+      ( js \ "serviceRate" \ "id").as[Int] mustBe 1
+      ( js \ "serviceRate" \ "isActive").as[Boolean] mustBe false
+
+    }
+
+    "set service rate active status to 1" in {
+
+      val responsePut = await( wsClient.url( s"$apiGateway/rates/1/active/1" ).withHeaders( authHeaders(authToken):_* ).put("") )
+      responsePut.status mustBe OK
+
+
+      val response = await( wsClient.url( s"$apiGateway/rates/1" ).withHeaders( authHeaders(authToken):_* ).get() )
+      val js = Json.parse(response.body)
+
+      response.status mustBe OK
+      ( js \ "serviceRate" \ "id").as[Int] mustBe 1
+      ( js \ "serviceRate" \ "isActive").as[Boolean] mustBe true
+
+    }
+
+
+
+    "delete services rate" in {
+
+      val responsePost = await( wsClient.url( s"$apiGateway/rates/" + newServiceRateId ).withHeaders( authHeaders(authToken):_* ).delete() )
+
+      responsePost.status mustBe OK
+
+      // attach it back
+      val response = await( wsClient.url( s"$apiGateway/services/1/rates" ).withQueryString( "includeInactive" -> "1" ).withHeaders( authHeaders(authToken):_* ).get() )
+      val js = Json.parse(response.body)
+
+      response.status mustBe OK
+      ( js \ "serviceRates" \\ "id").map(_.as[Int]).toSet mustBe Set( 1,2 )
+
+
+    }
+
 
   }
 

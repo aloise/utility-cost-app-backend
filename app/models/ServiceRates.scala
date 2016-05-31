@@ -63,7 +63,7 @@ object ServiceRatesQuery extends IndexedTableQuery[ServiceRate, ServiceRates]( t
   def forService(serviceId: Int, includeInactive: Boolean) = {
     for {
       serviceRate <- this
-      if ( serviceRate.serviceId === serviceId ) && ( serviceRate.isActive || LiteralColumn( includeInactive ) )
+      if !serviceRate.isDeleted && ( serviceRate.serviceId === serviceId ) && ( serviceRate.isActive || LiteralColumn( includeInactive ) )
     } yield serviceRate
   }
 

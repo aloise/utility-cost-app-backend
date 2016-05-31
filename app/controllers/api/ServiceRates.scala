@@ -64,14 +64,50 @@ class ServiceRates @Inject()(implicit ec:ExecutionContext, db: DBAccessProvider 
     }
   }
 
-  def update = ???
+  def update = apiWithParser( JsonModels.serviceRatesToJson ) { user => serviceRate =>
+    db.run(
+      ServicesQuery.hasAccess( user.id.getOrElse(0), serviceRate.serviceId, ObjectAccess.Write ).result.zip(
+        ServiceRatesQuery.hasAccess( user.id.getOrElse(0), serviceRate.id.getOrElse(0), ObjectAccess.Write ).result.zip(
+          ServiceRatesQuery.filter( _.id === serviceRate.id.getOrElse(0) ).result.headOption
+        )
+      )
+    ).flatMap {
+      case ( true, (true, Some( existingServiceRateData ) ) ) =>
 
-  def deactivate( rateId:Int ) = ???
+        val updatedServiceRate = serviceRate.copy( isDeleted = false, serviceId = existingServiceRateData.serviceId )
 
-  def activate( rateId:Int ) = ???
+        db.run( ServiceRatesQuery.update( updatedServiceRate.id.getOrElse(0), updatedServiceRate ) ).map { _ =>
+          jsonStatusOk( Json.obj( "serviceRate" -> updatedServiceRate ) )
+        }
 
+      case _ =>
+        jsonErrorAccessDenied
+    }
+  }
 
+  def setActive( rateId:Int, isActive:Int ) = apiWithAuth { user => r =>
+    db.run( ServiceRatesQuery.hasAccess( user.id.getOrElse(0), rateId, ObjectAccess.Write ).result ).flatMap {
+      case true =>
+        db.run( ServiceRatesQuery.filter( _.id === rateId ).map(_.isActive).update( isActive != 0 ) ).map { _ =>
+          jsonStatusOk
+        }
 
+      case _ =>
+        jsonErrorAccessDenied
+    }
+  }
+
+  def delete( rateId:Int ) = apiWithAuth { user => r =>
+    db.run( ServiceRatesQuery.hasAccess( user.id.getOrElse(0), rateId, ObjectAccess.Write ).result ).flatMap {
+      case true =>
+        db.run( ServiceRatesQuery.filter( _.id === rateId ).map(_.isDeleted).update( true ) ).map { _ =>
+          jsonStatusOk
+        }
+
+      case _ =>
+        jsonErrorAccessDenied
+    }
+  }
 
 
 }
