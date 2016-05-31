@@ -1,5 +1,7 @@
 package intergation
 
+import java.time.LocalDateTime
+
 import akka.stream.Materializer
 import controllers.helpers.AuthAction
 import models.base.DBAccessProvider
@@ -22,7 +24,7 @@ class ServiceRatesApiSpec extends PlaySpec with InitialSetup {
   "Rate Api" must {
 
 
-    var newServiceId: Int = 0
+    var newServiceRateId: Int = 0
     var authToken: String = ""
 
     "authorize the user" in {
@@ -64,6 +66,36 @@ class ServiceRatesApiSpec extends PlaySpec with InitialSetup {
 
       response.status mustBe OK
       ( js \ "serviceRates" \\ "id").map(_.as[Int]) must contain allOf( 1,2 )
+
+    }
+
+    "create a new service rate" in {
+      val serviceRateJson = Json.obj(
+        "serviceId" -> 1,
+        "isActive" -> false,
+        "activeFromDate" -> LocalDateTime.now(),
+        "rateData" -> Json.obj(),
+        "isDeleted" -> false
+      )
+
+      val response = await( wsClient.url( s"$apiGateway/rates" ).withHeaders( authHeaders(authToken):_* ).post(serviceRateJson) )
+      val js = Json.parse( response.body )
+      val newServiceIdOpt = ( js \ "serviceRate" \ "id" ).asOpt[Int]
+
+      response.status mustBe OK
+      ( js \ "serviceRate" ).asOpt[JsObject] mustBe defined
+      newServiceIdOpt mustBe defined
+
+      // request the service
+      newServiceRateId = newServiceIdOpt.get
+
+      val getResponse = await( wsClient.url( s"$apiGateway/rates/$newServiceRateId" ).withHeaders( authHeaders(authToken):_* ).get() )
+      val getJs = Json.parse( getResponse.body )
+      getResponse.status mustBe OK
+      ( getJs \ "serviceRate" \ "id" ).as[Int] mustBe newServiceRateId
+      serviceRateJson.fields.foreach { case (jsKey, jsValue) =>
+        ( getJs \ "serviceRate" \ jsKey ).as[JsValue] mustBe jsValue
+      }
 
     }
 

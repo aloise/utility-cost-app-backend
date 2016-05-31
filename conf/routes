@@ -34,6 +34,7 @@ DELETE  /api/places/:placeId                            controllers.api.Places.d
 
 GET    /api/rates/:rateId                               controllers.api.ServiceRates.get(rateId:Int)
 GET    /api/services/:serviceId/rates                   controllers.api.ServiceRates.listForService(serviceId:Int, includeInactive:Int ?= 0 )
+POST   /api/rates                                       controllers.api.ServiceRates.create
 
 
 # Map static resources from the /public folder to the /assets URL path

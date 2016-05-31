@@ -54,7 +54,7 @@ object ServiceRatesQuery extends IndexedTableQuery[ServiceRate, ServiceRates]( t
         if
           !serviceRate.isDeleted &&
           ( serviceRate.id === serviceRateId ) &&
-          ServicesQuery.hasAccess( userId, serviceRate.id, accessType )
+          ServicesQuery.hasAccess( userId, serviceRate.serviceId, accessType )
       } yield serviceRate.id
     ).exists
   }

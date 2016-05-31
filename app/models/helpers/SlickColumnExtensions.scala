@@ -33,8 +33,8 @@ object SlickColumnExtensions {
 
   implicit val LocalDateTimeColumnType =
     MappedColumnType.base[LocalDateTime, Timestamp](
-      dt => new Timestamp(dt.atZone(ZoneId.systemDefault()).toInstant.toEpochMilli ),
-      ts => LocalDateTime.ofInstant( ts.toInstant, ZoneId.systemDefault())
+      dt => Timestamp.valueOf( dt ),
+      ts => ts.toLocalDateTime
     )
 
   implicit def jodaMoney2Tuple( tuple:( BigDecimal,String ) ):Money = {
