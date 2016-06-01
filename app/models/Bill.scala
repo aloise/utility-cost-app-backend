@@ -52,5 +52,13 @@ class BillsTable(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
 
 object BillsQuery extends IndexedTableQuery[Bill,BillsTable]( tag => new BillsTable(tag) ) with UserHasAccess[Bill] {
 
-  override def hasAccess(access: Access)(billId: Rep[Int])(userId: Rep[Int]): Rep[Boolean] = ???
+  override def hasAccess(access: Access)(billId: Rep[Int])(userId: Rep[Int]): Rep[Boolean] = {
+    (
+      for {
+        bill <- this
+        if !bill.isDeleted && ( bill.id === billId) && ServiceRatesQuery.hasAccess(access)( bill.serviceRateId )( userId )
+      } yield bill.id
+    ).exists
+  }
+
 }

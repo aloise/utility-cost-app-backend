@@ -1,7 +1,6 @@
 package intergation
 
 import java.time.LocalDateTime
-
 import akka.stream.Materializer
 import controllers.helpers.AuthAction
 import models.base.DBAccessProvider
@@ -167,8 +166,6 @@ class ServiceRatesApiSpec extends PlaySpec with InitialSetup {
 
       response.status mustBe OK
       ( js \ "serviceRates" \\ "id").map(_.as[Int]).toSet mustBe Set( 1,2 )
-
-
     }
 
 

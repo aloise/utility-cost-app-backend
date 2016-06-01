@@ -31,7 +31,7 @@ abstract class ApiController ( ec:ExecutionContext, db:DBAccessProvider ) extend
     *
     * @param hasAccess ( User.id, ObjectAccess )
     * @param bodyFunc Process the request
-    * @return
+    * @return response
     */
   def apiWithAuth( hasAccess: Rep[Int] => Rep[Boolean] )(bodyFunc: => models.User => Request[_] => Future[Result]) =
     withAuthAsync[models.User]{ user => request =>
@@ -71,9 +71,9 @@ abstract class ApiController ( ec:ExecutionContext, db:DBAccessProvider ) extend
 
   /**
     *
-    * @param parser
+    * @param parser Content parser
     * @param hasAccess User.id -> Boolean
-    * @param f
+    * @param f response body generator
     */
 
   def apiWithParserHasAccess[X <: IndexedRow]( parser: Reads[X] )( hasAccess: Rep[Int] => Rep[Boolean] )(f: => models.User => X => Future[Result]) = {
@@ -91,11 +91,10 @@ abstract class ApiController ( ec:ExecutionContext, db:DBAccessProvider ) extend
 
   /**
     *
-    * @param parser
-    * @param hasAccessTo
-    * @param f
-    * @tparam X
-    * @return
+    * @param parser Content parser
+    * @param hasAccessTo ( Object, User.id ) -> Boolean
+    * @param f response body generator
+    * @return response
     */
   def apiWithParserModel[X <: IndexedRow](parser: Reads[X] )( hasAccessTo: (X,Int) => Rep[Boolean] )(f: => models.User => X => Future[Result]) = {
     apiWithParser(parser) { user: models.User => parseResult: X =>

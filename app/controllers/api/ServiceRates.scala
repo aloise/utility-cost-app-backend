@@ -28,18 +28,18 @@ class ServiceRates @Inject()(implicit ec:ExecutionContext, db: DBAccessProvider 
   }
 
   def get( rateId:Int ) = apiWithAuth( ServiceRatesQuery.hasAccess(O.Read)(rateId) _ ) { user => r =>
-        db.run( ServiceRatesQuery.filter( _.id === rateId ).result.headOption ).map { serviceRate =>
-          jsonStatusOk(Json.obj("serviceRate" -> serviceRate ))
-        }
+      db.run( ServiceRatesQuery.filter( _.id === rateId ).result.headOption ).map { serviceRate =>
+        jsonStatusOk(Json.obj("serviceRate" -> serviceRate ))
+      }
   }
 
   def create = apiWithParserModel( JsonModels.serviceRatesToJson )( (sr,uId) => ServicesQuery.hasWriteAccess( sr.serviceId )(uId) ){ user => serviceRate =>
 
     val serviceRateData = serviceRate.copy( id = None, isDeleted = false )
 
-    db.run(ServiceRatesQuery.insert(serviceRateData).flatMap { newId =>
-      ServiceRatesQuery.findById(newId)
-    }).map { serviceRate =>
+    db.run(ServiceRatesQuery.insert(serviceRateData)).flatMap { newId =>
+      db.run( ServiceRatesQuery.findById(newId) )
+    }.map { serviceRate =>
       jsonStatusOk(Json.obj( "serviceRate" -> serviceRate ))
     }
   }
