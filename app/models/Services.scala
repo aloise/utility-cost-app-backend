@@ -2,11 +2,11 @@ package models
 
 import java.time.LocalDateTime
 import javax.inject.Inject
+
+import models.base.ObjectAccess.Access
 import models.base._
 import models.helpers._
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.Codecs
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsObject, JsValue}
 import slick.driver.H2Driver.api._
 import models.helpers.SlickColumnExtensions._
@@ -38,41 +38,7 @@ class ServicesTable(tag:Tag) extends IndexedTable[Service](tag, "services") {
 
 }
 
-object ServicesQuery extends IndexedTableQuery[Service, ServicesTable]( tag => new ServicesTable(tag) ) {
-
-  def hasAccess( userId:Int, serviceId:Int, accessType: ObjectAccess.Access ): Rep[Boolean] = {
-    hasAccess( LiteralColumn( userId ), LiteralColumn( serviceId ), accessType: ObjectAccess.Access )
-  }
-
-  def hasAccess( userId:Rep[Int], serviceId:Rep[Int], accessType: ObjectAccess.Access ): Rep[Boolean] = {
-    accessType match {
-      case ObjectAccess.Write =>
-        ServicesQuery.
-          filter(s => (s.createdByUserId === userId) && (s.id === serviceId) && !s.isDeleted ).
-          exists
-      case ObjectAccess.Read =>
-
-        hasAccess(userId, serviceId, ObjectAccess.Write) ||
-        (
-          for {
-            service <- ServicesQuery
-            servicePlace <- PlacesServicesQuery
-            place <- PlacesQuery
-            userPlace <- UsersPlacesQuery
-            if
-              !service.isDeleted &&
-              !place.isDeleted &&
-              ( service.id === serviceId ) &&
-              ( service.id === servicePlace.serviceId ) &&
-              ( servicePlace.placeId === place.id ) &&
-              ( place.id === userPlace.placeId ) &&
-              ( userPlace.userId === userId )
-
-          } yield service.id
-        ).exists
-    }
-
-  }
+object ServicesQuery extends IndexedTableQuery[Service, ServicesTable]( tag => new ServicesTable(tag) ) with UserHasAccess[Service] {
 
   def listByPlace( userId: Int, placeId:Int ) = {
     for {
@@ -92,6 +58,33 @@ object ServicesQuery extends IndexedTableQuery[Service, ServicesTable]( tag => n
     } yield service
   }
 
+  override def hasAccess( access: Access )(serviceId: Rep[Int])(userId: Rep[Int]): Rep[Boolean] =
+    access match {
+      case ObjectAccess.Write =>
+        ServicesQuery.
+          filter(s => (s.createdByUserId === userId) && (s.id === serviceId) && !s.isDeleted ).
+          exists
+
+      case ObjectAccess.Read =>
+        this.hasAccess( ObjectAccess.Write )( serviceId )( userId ) ||
+          (
+            for {
+              service <- ServicesQuery
+              servicePlace <- PlacesServicesQuery
+              place <- PlacesQuery
+              userPlace <- UsersPlacesQuery
+              if
+              !service.isDeleted &&
+                !place.isDeleted &&
+                ( service.id === serviceId ) &&
+                ( service.id === servicePlace.serviceId ) &&
+                ( servicePlace.placeId === place.id ) &&
+                ( place.id === userPlace.placeId ) &&
+                ( userPlace.userId === userId )
+
+            } yield service.id
+          ).exists
+    }
 
 }
 

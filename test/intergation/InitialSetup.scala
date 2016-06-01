@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 import controllers.helpers.AuthAction
 import models.{UserRole, UsersPlace, _}
 import models.base.DBAccessProvider
+import org.joda.money.{CurrencyUnit, Money}
 import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.scalatestplus.play.{OneServerPerSuite, OneServerPerTest}
 import play.api.db.slick.DatabaseConfigProvider
@@ -62,6 +63,11 @@ trait InitialSetup extends Suite with OneServerPerSuite {
     ),
     ServiceRatesQuery ++= Seq(
       ServiceRate( Some(1), 1, true ), ServiceRate( Some(2), 1, false, LocalDateTime.now().minusDays(30), Some( LocalDateTime.now() ) ) , ServiceRate( Some(3), 2, true )
+    ),
+    BillsQuery ++= Seq(
+      Bill( Some(1), 1, 1, 1, 15, Money.of( CurrencyUnit.USD, 10 ) ),
+      Bill( Some(2), 1, 2, 2, 5, Money.of( CurrencyUnit.USD, 10 ), LocalDateTime.now().minusHours(60), Some(LocalDateTime.now().minusHours(5) ) ),
+      Bill( Some(3), 1, 2, 3, 5, Money.of( CurrencyUnit.USD, 10 ), LocalDateTime.now().minusHours(60), Some(LocalDateTime.now().minusHours(5) ) )
     )
   )
 

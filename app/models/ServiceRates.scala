@@ -3,6 +3,7 @@ package models
 import java.time.LocalDateTime
 import javax.inject.Inject
 
+import models.base.ObjectAccess.Access
 import models.base._
 import models.helpers._
 import play.api.db.slick.DatabaseConfigProvider
@@ -31,7 +32,7 @@ case class ServiceRate(
 
 }
 
-class ServiceRates(tag:Tag) extends IndexedTable[ServiceRate](tag, "service_rates") {
+class ServiceRatesTable(tag:Tag) extends IndexedTable[ServiceRate](tag, "service_rates") {
   def serviceId = column[Int]("service_id")
   def isActive = column[Boolean]("is_active")
   def activeFromDate = column[LocalDateTime]("active_from_date")
@@ -41,23 +42,7 @@ class ServiceRates(tag:Tag) extends IndexedTable[ServiceRate](tag, "service_rate
   def * = ( id.?,serviceId,isActive, activeFromDate, inactiveFromDate, rateData, isDeleted ) <> ( ServiceRate.tupled, ServiceRate.unapply )
 }
 
-object ServiceRatesQuery extends IndexedTableQuery[ServiceRate, ServiceRates]( tag => new ServiceRates(tag) ) {
-
-  def hasAccess( userId:Int, serviceRateId:Int, accessType: ObjectAccess.Access ): Rep[Boolean] = {
-    hasAccess( LiteralColumn(userId), LiteralColumn(serviceRateId), accessType )
-  }
-
-  def hasAccess( userId:Rep[Int], serviceRateId:Rep[Int], accessType: ObjectAccess.Access  ): Rep[Boolean] = {
-    (
-      for {
-        serviceRate <- ServiceRatesQuery
-        if
-          !serviceRate.isDeleted &&
-          ( serviceRate.id === serviceRateId ) &&
-          ServicesQuery.hasAccess( userId, serviceRate.serviceId, accessType )
-      } yield serviceRate.id
-    ).exists
-  }
+object ServiceRatesQuery extends IndexedTableQuery[ServiceRate, ServiceRatesTable]( tag => new ServiceRatesTable(tag) ) with UserHasAccess[ServiceRate] {
 
 
   def forService(serviceId: Int, includeInactive: Boolean) = {
@@ -67,5 +52,16 @@ object ServiceRatesQuery extends IndexedTableQuery[ServiceRate, ServiceRates]( t
     } yield serviceRate
   }
 
+  override def hasAccess(access: Access)(serviceRateId: Rep[Int])(userId: Rep[Int]): Rep[Boolean] = {
+    (
+      for {
+        serviceRate <- ServiceRatesQuery
+        if
+        !serviceRate.isDeleted &&
+          ( serviceRate.id === serviceRateId ) &&
+          ServicesQuery.hasAccess(access)( serviceRate.serviceId )( userId )
+      } yield serviceRate.id
+      ).exists
+  }
 }
 

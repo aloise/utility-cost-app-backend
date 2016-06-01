@@ -40,6 +40,18 @@ PUT     /api/rates                                       controllers.api.Service
 DELETE  /api/rates/:rateId                               controllers.api.ServiceRates.delete(rateId:Int)
 PUT     /api/rates/:rateId/active/:isActive              controllers.api.ServiceRates.setActive(rateId:Int, isActive:Int)
 
+# Bill API
+
+GET     /api/bills/:billId                               controllers.api.Bills.get(billId:Int)
+GET     /api/services/:serviceId/bills                   controllers.api.Bills.listByService( serviceId:Int, fromDate:String ?= "" )
+GET     /api/rates/:rateId/bills                         controllers.api.Bills.listByServiceRate( rateId:Int, fromDate:String ?= "" )
+GET     /api/places/:placeId/bills                       controllers.api.Bills.listByPlace( placeId:Int, fromDate:String ?= "" )
+POST    /api/bills                                       controllers.api.Bills.create
+PUT     /api/bills                                       controllers.api.Bills.update
+DELETE  /api/bills/:billId                               controllers.api.Bills.delete(billId:Int)
+
+
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                                   controllers.Assets.at(path="/public", file)
 
