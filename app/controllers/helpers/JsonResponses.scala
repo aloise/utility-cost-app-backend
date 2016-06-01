@@ -27,6 +27,10 @@ trait JsonResponses {
 
   def jsonErrorAccessDenied = recoverJsonErrorsFuture("access_denied")
 
+  def jsonErrorNotFoundFuture = recoverJsonErrorsFuture("not_found")
+
+  def jsonErrorNotFound = recoverJsonErrors("not_found")
+
   def recoverJsonErrorsFuture( error:String, description: String = null ):Future[Result] =
     Future.successful( BadRequest(Json.obj("status" ->"error", "message" -> error, "description" -> description )))
 

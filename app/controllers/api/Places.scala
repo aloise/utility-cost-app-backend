@@ -20,16 +20,16 @@ class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ex
 
   import models.helpers.JsonModels._
 
-  def list = apiWithAuth { user => r =>
+  def list = apiWithAuth { user:models.User => r =>
     db.run(PlacesQuery.forUser(user.id.getOrElse(0)).result).map { items =>
       jsonStatusOk(Json.obj("places"->items.map(_._2)))
     }
   }
 
-  def get(placeId:Int) = apiWithAuth { user => r =>
-    db.run(PlacesQuery.findPlaceWithAccess(placeId, user.id.getOrElse(0), ObjectAccess.Read)).map {
+  def get(placeId:Int) = apiWithAuth(PlacesQuery.hasReadAccess(placeId) _ ) { user => r =>
+    db.run(PlacesQuery.findById(placeId)).map {
       case Some(item) => jsonStatusOk(Json.obj("place" -> item))
-      case None => recoverJsonErrors("place_not_found")
+      case None => jsonErrorNotFound
     }
   }
 
@@ -42,18 +42,18 @@ class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ex
     }
   }
 
-  def update = apiWithParser(JsonModels.placeToJson) { user => place =>
+  def update = apiWithParserModel(JsonModels.placeToJson) ( (p, uId) => PlacesQuery.hasWriteAccess(p.id.getOrElse(0), uId) ) { user => place =>
 
     place.id match {
       case Some(id) =>
-        db.run(UsersPlacesQuery.findUserPlace(user.id.getOrElse(-1), id, UserRole.Admin))
+        db.run(PlacesQuery.findById(id))
             .flatMap {
-              case Some(userPlace) =>
-                db.run(PlacesQuery.update(id, place).flatMap(PlacesQuery.findById)).map { updatedPlace =>
-                  jsonStatusOk(Json.obj("place" -> updatedPlace))
+              case Some(existingPlace) =>
+                db.run(PlacesQuery.update(id, place.copy(isDeleted = false))).map { _ =>
+                  jsonStatusOk(Json.obj("place" -> place))
                 }
               case None =>
-                recoverJsonErrorsFuture("user_place_not_found")
+                jsonErrorNotFoundFuture
             }
       case None => recoverJsonErrorsFuture("no_id")
     }
@@ -61,17 +61,9 @@ class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ex
 
   }
 
-  def delete(placeId:Int) = apiWithAuth { user => r =>
-    db.run(UsersPlacesQuery.findUserPlace(user.id.getOrElse(-1), placeId, UserRole.Admin))
-      .flatMap {
-        case Some(userPlace) =>
-          db.run(PlacesQuery.deleteById(userPlace.placeId)).map { updatedPlace =>
-            jsonStatusOk
-          }
-        case None =>
-          recoverJsonErrorsFuture("user_place_not_found")
-      }
-
+  def delete(placeId:Int) = apiWithAuth(PlacesQuery.hasWriteAccess(placeId) _ ) { user => r =>
+    db.run(PlacesQuery.deleteById(placeId)).map { updatedPlace =>
+      jsonStatusOk
+    }
   }
-
 }

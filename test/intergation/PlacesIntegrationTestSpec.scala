@@ -95,7 +95,7 @@ class PlacesIntegrationTestSpec extends PlaySpec with InitialSetup{
       response.status mustBe BAD_REQUEST
 
       val js = Json.parse(response.body)
-      ( js \ "message" ).as[String] shouldBe "place_not_found"
+      ( js \ "message" ).as[String] shouldBe "access_denied"
     }
 
   }
