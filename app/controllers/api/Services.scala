@@ -21,31 +21,21 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
   import models.helpers.JsonModels._
 
 
-  def hasServiceAccess( serviceId:Int ) = apiWithAuth{ user => r =>
-    db.run( ServicesQuery.hasAccess( serviceId )( user.id.getOrElse(0), ObjectAccess.Read ).result ).map { result =>
-      jsonStatusOk( Json.obj("access" -> result ) )
-    }
+  def hasServiceAccess( serviceId:Int ) = apiWithAuth( ServicesQuery.hasReadAccess( serviceId ) _ ){ user => r =>
+      jsonStatusOkFuture( Json.obj("access" -> true ) )
   }
 
 
-  def get( serviceId:Int ) = apiWithAuth{ user => r =>
-
-    println(user)
-
-    db.run( ServicesQuery.hasAccess( serviceId )( user.id.getOrElse(0), ObjectAccess.Read ).result ).flatMap {
-      case true =>
+  def get( serviceId:Int ) = apiWithAuth( ServicesQuery.hasReadAccess( serviceId ) _ ){ user => r =>
         db.run( ServicesQuery.filter( s => ( s.id === serviceId ) && !s.isDeleted ).result.headOption ).map {
           case Some( service ) =>
             jsonStatusOk( Json.obj("service" -> service ) )
           case None =>
             recoverJsonErrors("not_found")
         }
-      case _ =>
-        jsonErrorAccessDenied
-    }
   }
 
-  def forPlace(placeId:Int) = apiWithAuth { user => r =>
+  def forPlace(placeId:Int) = apiWithAuth{ user:models.User => r =>
     db.run {
       ServicesQuery.listByPlace( user.id.getOrElse(0), placeId ).result
     } map { services =>
@@ -64,59 +54,35 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
 
   }
 
-  def update = apiWithParser( serviceToJson ) { user => service =>
-    db.run(
-      ServicesQuery.hasAccess( service.id.getOrElse(0) )( user.id.getOrElse(0), ObjectAccess.Write ).result.zip(
-        ServicesQuery.filter( _.id === service.id.getOrElse(0) ).result.headOption
-      )
-    ).flatMap {
-      case ( true, Some( existingServiceData ) ) =>
+  def update = apiWithParserModel( serviceToJson )( (s,uId) => ServicesQuery.hasWriteAccess( s.id.getOrElse(0) , uId ) ){ user => service =>
+    db.run( ServicesQuery.filter( _.id === service.id.getOrElse(0) ).result.head ).flatMap { existingServiceData =>
+
         val updatedService = service.copy( isDeleted = false, createdByUserId = existingServiceData.createdByUserId )
 
         db.run( ServicesQuery.update( updatedService.id.getOrElse(0), updatedService ) ).map { _ =>
           jsonStatusOk( Json.obj( "service" -> service ) )
         }
-
-      case _ =>
-        jsonErrorAccessDenied
     }
   }
 
-  def delete(serviceId:Int) = apiWithAuth { user => r =>
-    db.run( ServicesQuery.hasAccess( serviceId )( user.id.getOrElse(0), ObjectAccess.Write ).result ).flatMap {
-      case true =>
+  def delete(serviceId:Int) = apiWithAuth( ServicesQuery.hasWriteAccess( serviceId ) _ ){ user => r =>
         db.run( ServicesQuery.filter(_.id === serviceId).map(_.isDeleted).update(true) ).map { count =>
           jsonStatusOk
         }
-      case _ =>
-        jsonErrorAccessDenied
+    }
+
+
+// it's allowed only for admin of the place
+  def attachToPlace( serviceId:Int, placeId:Int ) = apiWithAuth( PlacesQuery.hasWriteAccess( placeId ) _ ) { user => r =>
+    db.run( PlacesServicesQuery.insert( PlacesService( placeId, serviceId ) ) ).map { _ =>
+      jsonStatusOk
     }
   }
 
-
-  def attachToPlace( serviceId:Int, placeId:Int ) = apiWithAuth { user => r =>
-    // it's allowed only for admin of the place
-    db.run( PlacesQuery.hasAccess( placeId )( user.id.getOrElse(0), ObjectAccess.Write ).result ).flatMap {
-      case true =>
-        db.run( PlacesServicesQuery.insert( PlacesService( placeId, serviceId ) ) ).map { _ =>
-          jsonStatusOk
-        }
-      case _ =>
-        jsonErrorAccessDenied
-    }
-  }
-
-  def detachFromPlace( serviceId:Int, placeId:Int ) = apiWithAuth { user => r =>
-    // it's allowed only for admin of the place
-
-    db.run( PlacesQuery.hasAccess( placeId )( user.id.getOrElse(0), ObjectAccess.Write ).result ).flatMap {
-      case true =>
-        db.run( PlacesServicesQuery.deleteFromPlace( placeId, serviceId ) ).map { _ =>
-          jsonStatusOk
-        }
-
-      case _ =>
-        jsonErrorAccessDenied
+  // it's allowed only for admin of the place
+  def detachFromPlace( serviceId:Int, placeId:Int ) = apiWithAuth( PlacesQuery.hasWriteAccess( placeId ) _ ) { user => r =>
+    db.run( PlacesServicesQuery.deleteFromPlace( placeId, serviceId ) ).map { _ =>
+      jsonStatusOk
     }
   }
 

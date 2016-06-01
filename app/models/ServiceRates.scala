@@ -42,7 +42,7 @@ class ServiceRatesTable(tag:Tag) extends IndexedTable[ServiceRate](tag, "service
   def * = ( id.?,serviceId,isActive, activeFromDate, inactiveFromDate, rateData, isDeleted ) <> ( ServiceRate.tupled, ServiceRate.unapply )
 }
 
-object ServiceRatesQuery extends IndexedTableQuery[ServiceRate, ServiceRatesTable]( tag => new ServiceRatesTable(tag) ) with UserHasAccess[ServiceRate,ServiceRatesTable] {
+object ServiceRatesQuery extends IndexedTableQuery[ServiceRate, ServiceRatesTable]( tag => new ServiceRatesTable(tag) ) with UserHasAccess[ServiceRate] {
 
 
   def forService(serviceId: Int, includeInactive: Boolean) = {
@@ -52,14 +52,14 @@ object ServiceRatesQuery extends IndexedTableQuery[ServiceRate, ServiceRatesTabl
     } yield serviceRate
   }
 
-  override def hasAccess(serviceRateId: Rep[Int])(userId: Rep[Int], access: Access): Rep[Boolean] = {
+  override def hasAccess(access: Access)(serviceRateId: Rep[Int])(userId: Rep[Int]): Rep[Boolean] = {
     (
       for {
         serviceRate <- ServiceRatesQuery
         if
         !serviceRate.isDeleted &&
           ( serviceRate.id === serviceRateId ) &&
-          ServicesQuery.hasAccess( serviceRate.serviceId )( userId, access )
+          ServicesQuery.hasAccess(access)( serviceRate.serviceId )( userId )
       } yield serviceRate.id
       ).exists
   }

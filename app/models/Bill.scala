@@ -50,7 +50,7 @@ class BillsTable(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
 
 }
 
-object BillsQuery extends IndexedTableQuery[Bill,BillsTable]( tag => new BillsTable(tag) ) with UserHasAccess[Bill,BillsTable] {
+object BillsQuery extends IndexedTableQuery[Bill,BillsTable]( tag => new BillsTable(tag) ) with UserHasAccess[Bill] {
 
-  override def hasAccess(billId: Rep[Int])(userId: Rep[Int], access: Access): Rep[Boolean] = ???
+  override def hasAccess(access: Access)(billId: Rep[Int])(userId: Rep[Int]): Rep[Boolean] = ???
 }

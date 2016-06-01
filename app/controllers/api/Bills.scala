@@ -17,16 +17,10 @@ import scala.concurrent.ExecutionContext
   */
 class Bills @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) extends ApiController(ec, db) {
 
-  def get( billId:Int ) = apiWithAuth { user => r =>
-    db.run( BillsQuery.hasAccess( billId )( user.id.getOrElse(0), ObjectAccess.Read ).result ).flatMap {
-      case true =>
+  def get( billId:Int ) = apiWithAuth( BillsQuery.hasReadAccess( billId ) _ ) { user => r =>
         db.run( BillsQuery.filter( _.id === billId ).result.headOption ).map { bill =>
           jsonStatusOk(Json.obj( "bill" -> bill ))
         }
-
-      case _ =>
-        jsonErrorAccessDenied
-    }
   }
 
 }

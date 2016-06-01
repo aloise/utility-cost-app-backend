@@ -7,8 +7,6 @@ import models.base.ObjectAccess.Access
 import models.base._
 import models.helpers._
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.Codecs
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsObject, JsValue}
 import slick.driver.H2Driver.api._
 import models.helpers.SlickColumnExtensions._
@@ -40,7 +38,7 @@ class ServicesTable(tag:Tag) extends IndexedTable[Service](tag, "services") {
 
 }
 
-object ServicesQuery extends IndexedTableQuery[Service, ServicesTable]( tag => new ServicesTable(tag) ) with UserHasAccess[Service,ServicesTable] {
+object ServicesQuery extends IndexedTableQuery[Service, ServicesTable]( tag => new ServicesTable(tag) ) with UserHasAccess[Service] {
 
   def listByPlace( userId: Int, placeId:Int ) = {
     for {
@@ -60,7 +58,7 @@ object ServicesQuery extends IndexedTableQuery[Service, ServicesTable]( tag => n
     } yield service
   }
 
-  override def hasAccess(serviceId: Rep[Int])(userId: Rep[Int], access: Access): Rep[Boolean] =
+  override def hasAccess( access: Access )(serviceId: Rep[Int])(userId: Rep[Int]): Rep[Boolean] =
     access match {
       case ObjectAccess.Write =>
         ServicesQuery.
@@ -68,7 +66,7 @@ object ServicesQuery extends IndexedTableQuery[Service, ServicesTable]( tag => n
           exists
 
       case ObjectAccess.Read =>
-        this.hasAccess(serviceId)( userId, ObjectAccess.Write ) ||
+        this.hasAccess( ObjectAccess.Write )( serviceId )( userId ) ||
           (
             for {
               service <- ServicesQuery

@@ -36,7 +36,7 @@ class PlacesTable(tag:Tag) extends IndexedTable[Place](tag, "places") {
   def * = (id.?, title, country, city, state, zip, address, isDeleted) <> (Place.tupled, Place.unapply)
 }
 
-object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new PlacesTable(tag) ) with UserHasAccess[Place,PlacesTable] {
+object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new PlacesTable(tag) ) with UserHasAccess[Place] {
 
   def findPlaceWithAccess(placeId:Int, userId:Int, accessType: ObjectAccess.Access ) = {
     (
@@ -66,7 +66,7 @@ object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new Plac
     } yield ( userPlace, place )
   }
 
-  override def hasAccess(placeId: Rep[Int])(userId: Rep[Int], access: Access): Rep[Boolean] = {
+  override def hasAccess(access: Access)(placeId: Rep[Int])(userId: Rep[Int]): Rep[Boolean] = {
     (
       for {
         user <- UsersQuery

@@ -3,13 +3,12 @@ package controllers.api
 import java.time.LocalDateTime
 
 import models._
-import models.base.{DBAccessProvider, ObjectAccess}
+import models.base.{DBAccessProvider, ObjectAccess => O}
 import models.helpers.JsonModels._
 import slick.driver.H2Driver.api._
 import models.helpers.SlickColumnExtensions._
 import play.api.libs.json.Json
 import javax.inject.Inject
-
 import models.helpers.JsonModels
 
 import scala.concurrent.ExecutionContext
@@ -22,52 +21,33 @@ import scala.concurrent.ExecutionContext
 class ServiceRates @Inject()(implicit ec:ExecutionContext, db: DBAccessProvider ) extends ApiController(ec, db) {
 
 
-  def listForService( serviceId:Int, includeInactive:Int = 0 ) = apiWithAuth { user => r =>
-    db.run( ServicesQuery.hasAccess( serviceId )( user.id.getOrElse(0), ObjectAccess.Read ).result ).flatMap {
-      case true =>
-        db.run( ServiceRatesQuery.forService( serviceId, includeInactive != 0 ).result ).map { serviceRates =>
-          jsonStatusOk(Json.obj("serviceRates" -> serviceRates ))
-
-        }
-      case _ =>
-        jsonErrorAccessDenied
+  def listForService( serviceId:Int, includeInactive:Int = 0 ) = apiWithAuth( ServicesQuery.hasReadAccess( serviceId ) _ ) { user => r =>
+    db.run(ServiceRatesQuery.forService(serviceId, includeInactive != 0).result).map { serviceRates =>
+      jsonStatusOk(Json.obj("serviceRates" -> serviceRates))
     }
-
   }
 
-  def get( rateId:Int ) = apiWithAuth { user => r =>
-    db.run( ServiceRatesQuery.hasAccess( rateId )( user.id.getOrElse(0), ObjectAccess.Read ).result ).flatMap {
-      case true =>
+  def get( rateId:Int ) = apiWithAuth( ServiceRatesQuery.hasAccess(O.Read)(rateId) _ ) { user => r =>
         db.run( ServiceRatesQuery.filter( _.id === rateId ).result.headOption ).map { serviceRate =>
           jsonStatusOk(Json.obj("serviceRate" -> serviceRate ))
         }
+  }
 
-      case _ =>
-        jsonErrorAccessDenied
+  def create = apiWithParserModel( JsonModels.serviceRatesToJson )( (sr,uId) => ServicesQuery.hasWriteAccess( sr.serviceId )(uId) ){ user => serviceRate =>
+
+    val serviceRateData = serviceRate.copy( id = None, isDeleted = false )
+
+    db.run(ServiceRatesQuery.insert(serviceRateData).flatMap { newId =>
+      ServiceRatesQuery.findById(newId)
+    }).map { serviceRate =>
+      jsonStatusOk(Json.obj( "serviceRate" -> serviceRate ))
     }
   }
 
-  def create = apiWithParser( JsonModels.serviceRatesToJson ) { user => serviceRate =>
-    db.run( ServicesQuery.hasAccess( serviceRate.serviceId )( user.id.getOrElse(0), ObjectAccess.Write ).result ).flatMap {
-      case true =>
-        val serviceRateData = serviceRate.copy( id = None, isDeleted = false )
-
-        db.run(ServiceRatesQuery.insert(serviceRateData).flatMap { newId =>
-          ServiceRatesQuery.findById(newId)
-        }).map { serviceRate =>
-          jsonStatusOk(Json.obj( "serviceRate" -> serviceRate ))
-        }
-
-      case _ =>
-        jsonErrorAccessDenied
-
-    }
-  }
-
-  def update = apiWithParser( JsonModels.serviceRatesToJson ) { user => serviceRate =>
+  def update = apiWithParser( JsonModels.serviceRatesToJson ){ user:models.User => serviceRate =>
     db.run(
-      ServicesQuery.hasAccess( serviceRate.serviceId )( user.id.getOrElse(0), ObjectAccess.Write ).result.zip(
-        ServiceRatesQuery.hasAccess( serviceRate.id.getOrElse(0) )( user.id.getOrElse(0), ObjectAccess.Write ).result.zip(
+      ServicesQuery.hasWriteAccess( serviceRate.serviceId , user.id.getOrElse(0) ).result.zip(
+        ServiceRatesQuery.hasWriteAccess( serviceRate.id.getOrElse(0) , user.id.getOrElse(0) ).result.zip(
           ServiceRatesQuery.filter( _.id === serviceRate.id.getOrElse(0) ).result.headOption
         )
       )
@@ -85,28 +65,16 @@ class ServiceRates @Inject()(implicit ec:ExecutionContext, db: DBAccessProvider 
     }
   }
 
-  def setActive( rateId:Int, isActive:Int ) = apiWithAuth { user => r =>
-    db.run( ServiceRatesQuery.hasAccess( rateId )( user.id.getOrElse(0), ObjectAccess.Write ).result ).flatMap {
-      case true =>
-        db.run( ServiceRatesQuery.filter( _.id === rateId ).map(_.isActive).update( isActive != 0 ) ).map { _ =>
-          jsonStatusOk
-        }
-
-      case _ =>
-        jsonErrorAccessDenied
+  def setActive( rateId:Int, isActive:Int ) = apiWithAuth( ServiceRatesQuery.hasWriteAccess(rateId) _ ) { user => r =>
+    db.run( ServiceRatesQuery.filter( _.id === rateId ).map(_.isActive).update( isActive != 0 ) ).map { _ =>
+      jsonStatusOk
     }
   }
 
-  def delete( rateId:Int ) = apiWithAuth { user => r =>
-    db.run( ServiceRatesQuery.hasAccess( rateId )( user.id.getOrElse(0), ObjectAccess.Write ).result ).flatMap {
-      case true =>
-        db.run( ServiceRatesQuery.filter( _.id === rateId ).map(_.isDeleted).update( true ) ).map { _ =>
-          jsonStatusOk
-        }
-
-      case _ =>
-        jsonErrorAccessDenied
-    }
+  def delete( rateId:Int ) = apiWithAuth( ServiceRatesQuery.hasWriteAccess(rateId) _ ) { user => r =>
+      db.run( ServiceRatesQuery.filter( _.id === rateId ).map(_.isDeleted).update( true ) ).map { _ =>
+        jsonStatusOk
+      }
   }
 
 
