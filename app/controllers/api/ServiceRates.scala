@@ -23,7 +23,7 @@ class ServiceRates @Inject()(implicit ec:ExecutionContext, db: DBAccessProvider 
 
 
   def listForService( serviceId:Int, includeInactive:Int = 0 ) = apiWithAuth { user => r =>
-    db.run( ServicesQuery.hasAccess( user.id.getOrElse(0), serviceId, ObjectAccess.Read ).result ).flatMap {
+    db.run( ServicesQuery.hasAccess( serviceId )( user.id.getOrElse(0), ObjectAccess.Read ).result ).flatMap {
       case true =>
         db.run( ServiceRatesQuery.forService( serviceId, includeInactive != 0 ).result ).map { serviceRates =>
           jsonStatusOk(Json.obj("serviceRates" -> serviceRates ))
@@ -36,7 +36,7 @@ class ServiceRates @Inject()(implicit ec:ExecutionContext, db: DBAccessProvider 
   }
 
   def get( rateId:Int ) = apiWithAuth { user => r =>
-    db.run( ServiceRatesQuery.hasAccess( user.id.getOrElse(0), rateId, ObjectAccess.Read ).result ).flatMap {
+    db.run( ServiceRatesQuery.hasAccess( rateId )( user.id.getOrElse(0), ObjectAccess.Read ).result ).flatMap {
       case true =>
         db.run( ServiceRatesQuery.filter( _.id === rateId ).result.headOption ).map { serviceRate =>
           jsonStatusOk(Json.obj("serviceRate" -> serviceRate ))
@@ -48,7 +48,7 @@ class ServiceRates @Inject()(implicit ec:ExecutionContext, db: DBAccessProvider 
   }
 
   def create = apiWithParser( JsonModels.serviceRatesToJson ) { user => serviceRate =>
-    db.run( ServicesQuery.hasAccess( user.id.getOrElse(0), serviceRate.serviceId, ObjectAccess.Write ).result ).flatMap {
+    db.run( ServicesQuery.hasAccess( serviceRate.serviceId )( user.id.getOrElse(0), ObjectAccess.Write ).result ).flatMap {
       case true =>
         val serviceRateData = serviceRate.copy( id = None, isDeleted = false )
 
@@ -66,8 +66,8 @@ class ServiceRates @Inject()(implicit ec:ExecutionContext, db: DBAccessProvider 
 
   def update = apiWithParser( JsonModels.serviceRatesToJson ) { user => serviceRate =>
     db.run(
-      ServicesQuery.hasAccess( user.id.getOrElse(0), serviceRate.serviceId, ObjectAccess.Write ).result.zip(
-        ServiceRatesQuery.hasAccess( user.id.getOrElse(0), serviceRate.id.getOrElse(0), ObjectAccess.Write ).result.zip(
+      ServicesQuery.hasAccess( serviceRate.serviceId )( user.id.getOrElse(0), ObjectAccess.Write ).result.zip(
+        ServiceRatesQuery.hasAccess( serviceRate.id.getOrElse(0) )( user.id.getOrElse(0), ObjectAccess.Write ).result.zip(
           ServiceRatesQuery.filter( _.id === serviceRate.id.getOrElse(0) ).result.headOption
         )
       )
@@ -86,7 +86,7 @@ class ServiceRates @Inject()(implicit ec:ExecutionContext, db: DBAccessProvider 
   }
 
   def setActive( rateId:Int, isActive:Int ) = apiWithAuth { user => r =>
-    db.run( ServiceRatesQuery.hasAccess( user.id.getOrElse(0), rateId, ObjectAccess.Write ).result ).flatMap {
+    db.run( ServiceRatesQuery.hasAccess( rateId )( user.id.getOrElse(0), ObjectAccess.Write ).result ).flatMap {
       case true =>
         db.run( ServiceRatesQuery.filter( _.id === rateId ).map(_.isActive).update( isActive != 0 ) ).map { _ =>
           jsonStatusOk
@@ -98,7 +98,7 @@ class ServiceRates @Inject()(implicit ec:ExecutionContext, db: DBAccessProvider 
   }
 
   def delete( rateId:Int ) = apiWithAuth { user => r =>
-    db.run( ServiceRatesQuery.hasAccess( user.id.getOrElse(0), rateId, ObjectAccess.Write ).result ).flatMap {
+    db.run( ServiceRatesQuery.hasAccess( rateId )( user.id.getOrElse(0), ObjectAccess.Write ).result ).flatMap {
       case true =>
         db.run( ServiceRatesQuery.filter( _.id === rateId ).map(_.isDeleted).update( true ) ).map { _ =>
           jsonStatusOk

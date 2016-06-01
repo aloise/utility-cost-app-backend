@@ -155,8 +155,6 @@ class ServiceRatesApiSpec extends PlaySpec with InitialSetup {
 
     }
 
-
-
     "delete services rate" in {
 
       val responsePost = await( wsClient.url( s"$apiGateway/rates/" + newServiceRateId ).withHeaders( authHeaders(authToken):_* ).delete() )

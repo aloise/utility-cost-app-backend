@@ -2,11 +2,10 @@ package models
 
 import java.time.LocalDateTime
 
+import models.base.ObjectAccess.Access
 import models.base._
 import play.api.db.slick.DatabaseConfigProvider
-import slick.lifted._
 import slick.driver.H2Driver.api._
-
 import scala.concurrent.Future
 
 /**
@@ -37,27 +36,9 @@ class PlacesTable(tag:Tag) extends IndexedTable[Place](tag, "places") {
   def * = (id.?, title, country, city, state, zip, address, isDeleted) <> (Place.tupled, Place.unapply)
 }
 
-object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new PlacesTable(tag) ) {
+object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new PlacesTable(tag) ) with UserHasAccess[Place,PlacesTable] {
 
-  def hasAccess( placeId:Int, userId:Int, accessType: ObjectAccess.Access = ObjectAccess.Write ) = {
-    (
-      for {
-        user <- UsersQuery
-        place <- PlacesQuery
-        userPlace <- UsersPlacesQuery
-        if
-          (place.id === placeId && !place.isDeleted) &&
-          ( userPlace.placeId === placeId ) &&
-          ( user.id === userPlace.userId && !user.isDeleted ) &&
-          (
-            ( userPlace.role === UserRole.Admin ) ||
-            ( accessType == ObjectAccess.Read )
-          )
-      } yield user.id
-    ).exists
-  }
-
-  def findPlaceWithAccess(placeId:Int, userId:Int, accessType: ObjectAccess.Access = ObjectAccess.Write ) = {
+  def findPlaceWithAccess(placeId:Int, userId:Int, accessType: ObjectAccess.Access ) = {
     (
       for {
         user <- UsersQuery
@@ -85,4 +66,22 @@ object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new Plac
     } yield ( userPlace, place )
   }
 
+  override def hasAccess(placeId: Rep[Int])(userId: Rep[Int], access: Access): Rep[Boolean] = {
+    (
+      for {
+        user <- UsersQuery
+        place <- PlacesQuery
+        userPlace <- UsersPlacesQuery
+        if
+          (place.id === placeId ) &&
+          !place.isDeleted &&
+          ( userPlace.placeId === placeId ) &&
+          ( user.id === userPlace.userId && !user.isDeleted ) &&
+          (
+            ( userPlace.role === UserRole.Admin ) || ( access == ObjectAccess.Read )
+          )
+      } yield user.id
+    ).exists
+
+  }
 }

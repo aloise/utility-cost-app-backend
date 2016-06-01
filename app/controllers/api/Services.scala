@@ -22,14 +22,17 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
 
 
   def hasServiceAccess( serviceId:Int ) = apiWithAuth{ user => r =>
-    db.run( ServicesQuery.hasAccess( user.id.getOrElse(0), serviceId, ObjectAccess.Read ).result ).map { result =>
+    db.run( ServicesQuery.hasAccess( serviceId )( user.id.getOrElse(0), ObjectAccess.Read ).result ).map { result =>
       jsonStatusOk( Json.obj("access" -> result ) )
     }
   }
 
 
   def get( serviceId:Int ) = apiWithAuth{ user => r =>
-    db.run( ServicesQuery.hasAccess( user.id.getOrElse(0), serviceId, ObjectAccess.Read ).result ).flatMap {
+
+    println(user)
+
+    db.run( ServicesQuery.hasAccess( serviceId )( user.id.getOrElse(0), ObjectAccess.Read ).result ).flatMap {
       case true =>
         db.run( ServicesQuery.filter( s => ( s.id === serviceId ) && !s.isDeleted ).result.headOption ).map {
           case Some( service ) =>
@@ -63,7 +66,7 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
 
   def update = apiWithParser( serviceToJson ) { user => service =>
     db.run(
-      ServicesQuery.hasAccess( user.id.getOrElse(0), service.id.getOrElse(0), ObjectAccess.Write ).result.zip(
+      ServicesQuery.hasAccess( service.id.getOrElse(0) )( user.id.getOrElse(0), ObjectAccess.Write ).result.zip(
         ServicesQuery.filter( _.id === service.id.getOrElse(0) ).result.headOption
       )
     ).flatMap {
@@ -80,7 +83,7 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
   }
 
   def delete(serviceId:Int) = apiWithAuth { user => r =>
-    db.run( ServicesQuery.hasAccess( user.id.getOrElse(0), serviceId, ObjectAccess.Write ).result ).flatMap {
+    db.run( ServicesQuery.hasAccess( serviceId )( user.id.getOrElse(0), ObjectAccess.Write ).result ).flatMap {
       case true =>
         db.run( ServicesQuery.filter(_.id === serviceId).map(_.isDeleted).update(true) ).map { count =>
           jsonStatusOk
@@ -93,7 +96,7 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
 
   def attachToPlace( serviceId:Int, placeId:Int ) = apiWithAuth { user => r =>
     // it's allowed only for admin of the place
-    db.run( PlacesQuery.hasAccess( placeId, user.id.getOrElse(0) ).result ).flatMap {
+    db.run( PlacesQuery.hasAccess( placeId )( user.id.getOrElse(0), ObjectAccess.Write ).result ).flatMap {
       case true =>
         db.run( PlacesServicesQuery.insert( PlacesService( placeId, serviceId ) ) ).map { _ =>
           jsonStatusOk
@@ -106,7 +109,7 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
   def detachFromPlace( serviceId:Int, placeId:Int ) = apiWithAuth { user => r =>
     // it's allowed only for admin of the place
 
-    db.run( PlacesQuery.hasAccess( placeId, user.id.getOrElse(0) ).result ).flatMap {
+    db.run( PlacesQuery.hasAccess( placeId )( user.id.getOrElse(0), ObjectAccess.Write ).result ).flatMap {
       case true =>
         db.run( PlacesServicesQuery.deleteFromPlace( placeId, serviceId ) ).map { _ =>
           jsonStatusOk

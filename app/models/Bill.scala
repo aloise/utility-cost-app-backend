@@ -2,7 +2,8 @@ package models
 
 import java.time.LocalDateTime
 
-import models.base.{IndexedRow, IndexedTable, IndexedTableQuery}
+import models.base.ObjectAccess.Access
+import models.base.{IndexedRow, IndexedTable, IndexedTableQuery, UserHasAccess}
 import models.helpers.SlickColumnExtensions._
 import org.joda.money.{CurrencyUnit, Money}
 import slick.driver.H2Driver.api._
@@ -49,6 +50,7 @@ class BillsTable(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
 
 }
 
-object BillsQuery extends IndexedTableQuery[Bill,BillsTable]( tag => new BillsTable(tag) ) {
+object BillsQuery extends IndexedTableQuery[Bill,BillsTable]( tag => new BillsTable(tag) ) with UserHasAccess[Bill,BillsTable] {
 
+  override def hasAccess(billId: Rep[Int])(userId: Rep[Int], access: Access): Rep[Boolean] = ???
 }

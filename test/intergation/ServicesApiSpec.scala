@@ -74,6 +74,7 @@ class ServicesApiSpec extends PlaySpec with InitialSetup {
     }
 
     "create a new service" in {
+
       val serviceJson = Json.obj(
         "title" -> "New Test Title",
         "area" -> "Area",

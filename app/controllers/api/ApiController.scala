@@ -3,10 +3,12 @@ package controllers.api
 import javax.inject.Inject
 
 import controllers.helpers.BaseController
-import models.base.DBAccessProvider
+import models.BillsQuery
+import models.base.{DBAccessProvider, ObjectAccess}
 import play.api.libs.json._
 import play.api.mvc.{Request, RequestHeader, Result}
-
+import slick.lifted.Rep
+import slick.driver.H2Driver.api._
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -21,6 +23,27 @@ abstract class ApiController ( ec:ExecutionContext, db:DBAccessProvider ) extend
       bodyFunc( user )( request ).recover{
         case ex:Throwable => recoverJsonException(ex)
       }(ec)
+    }( getObject, onUnauthorized )
+
+
+  /**
+    *
+    * @param hasAccess ( User.id, ObjectAccess )
+    * @param bodyFunc
+    * @return
+    */
+  def apiWithAuth( hasAccess: ( Int, ObjectAccess.Access ) => Rep[Boolean] )(bodyFunc: => models.User => Request[_] => Future[Result]) =
+    withAuthAsync[models.User]{ user => request =>
+
+      db.run( hasAccess( user.id.getOrElse(0), ObjectAccess.Read ).result ).flatMap {
+        case true =>
+          bodyFunc(user)(request).recover {
+            case ex: Throwable => recoverJsonException(ex)
+          }(ec)
+        case _ =>
+          jsonErrorAccessDenied
+      }(ec)
+
     }( getObject, onUnauthorized )
 
 
