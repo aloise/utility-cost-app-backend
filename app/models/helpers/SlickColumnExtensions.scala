@@ -4,7 +4,7 @@ package models.helpers
 import java.sql.Timestamp
 import java.util.Date
 
-import slick.driver.MySQLDriver.api._
+import slick.driver.H2Driver.api._
 import play.api.libs.json.{Format, JsNull, JsSuccess, JsValue}
 
 import scala.reflect.ClassTag
