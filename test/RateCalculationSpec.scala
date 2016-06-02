@@ -1,4 +1,4 @@
-import models.rate_data._
+import models.rate_data.RateDataContainer._
 import org.joda.money.{CurrencyUnit, Money}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}

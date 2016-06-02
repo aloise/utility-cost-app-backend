@@ -2,7 +2,7 @@ package models.rate_data
 
 import java.util.Currency
 
-import julienrf.json.derived
+import julienrf.json.derived._
 import org.joda.money.{CurrencyUnit, Money}
 import play.api.libs.json._
 
@@ -84,5 +84,16 @@ object RateDataContainer {
       }
     }
   }
+
+//  implicit val rateDataFormat: OFormat[RateData] = oformat
+//  implicit val rateDataFormat: Reads[RateData] = reads
+
+}
+
+
+class RateDataJson {
+  import models.rate_data.RateDataContainer.RateData
+
+//  implicit val rateDataFormat: OFormat[RateData] = derived.oformat[RateData]
 
 }

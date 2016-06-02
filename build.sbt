@@ -24,5 +24,6 @@ libraryDependencies ++= Seq(
   "com.h2database" % "h2" % "1.4.191",
   "org.joda" % "joda-money" % "0.11",
   "org.julienrf" % "play-json-derived-codecs_2.11" % "3.3",
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test
+  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
+  "org.scalacheck" %% "scalacheck" % "1.12.5" % Test
 )
