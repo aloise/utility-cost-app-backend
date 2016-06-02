@@ -12,6 +12,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsNull, JsObject, JsValue}
 import slick.driver.H2Driver.api._
 import models.helpers.SlickColumnExtensions._
+import models.rate_data.RateDataContainer.{ManualPriceRateData, RateData}
 
 /**
   * User: aloise
@@ -24,11 +25,12 @@ case class ServiceRate(
     isActive: Boolean,
     activeFromDate:LocalDateTime = LocalDateTime.now(),
     inactiveFromDate:Option[LocalDateTime] = None,
-    rateData:JsValue = JsNull,
+    rateData:RateData = ManualPriceRateData,
     override val isDeleted:Boolean = false
 ) extends IndexedRow {
 
-  def calculateAmount( previousValue:BigDecimal, nextValue:BigDecimal ) = ???
+  def calculateAmount( previousValue:BigDecimal, nextValue:BigDecimal ) =
+    rateData.calculatePricePerMonth( previousValue, nextValue )
 
 }
 
@@ -37,7 +39,7 @@ class ServiceRatesTable(tag:Tag) extends IndexedTable[ServiceRate](tag, "service
   def isActive = column[Boolean]("is_active")
   def activeFromDate = column[LocalDateTime]("active_from_date")
   def inactiveFromDate = column[Option[LocalDateTime]]("inactive_from_date")
-  def rateData = column[JsValue]("rate_data")
+  def rateData = column[RateData]("rate_data")
 
   def * = ( id.?,serviceId,isActive, activeFromDate, inactiveFromDate, rateData, isDeleted ) <> ( ServiceRate.tupled, ServiceRate.unapply )
 }

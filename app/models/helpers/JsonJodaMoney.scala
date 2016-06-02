@@ -52,9 +52,9 @@ object JsonJodaMoney {
 
   }
 
-  implicit val jodaCurrencyUnitJsonFormat = Format[CurrencyUnit]( new CurrencyUnitReads, new CurrencyUnitWrites )
+  implicit val jodaCurrencyUnitJsonFormat:Format[CurrencyUnit] = Format[CurrencyUnit]( new CurrencyUnitReads, new CurrencyUnitWrites )
 
-  implicit val jodaMoneyJsonFormat = new MoneyFormat()
+  implicit val jodaMoneyJsonFormat:Format[Money] = new MoneyFormat()
 
 
 }

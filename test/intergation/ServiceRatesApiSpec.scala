@@ -73,7 +73,7 @@ class ServiceRatesApiSpec extends PlaySpec with InitialSetup {
         "serviceId" -> 1,
         "isActive" -> true,
         "activeFromDate" -> LocalDateTime.now(),
-        "rateData" -> Json.obj(),
+        "rateData" -> Json.obj("ManualPriceRateData" -> Json.obj()),
         "isDeleted" -> false
       )
 
@@ -104,7 +104,7 @@ class ServiceRatesApiSpec extends PlaySpec with InitialSetup {
         "serviceId" -> 1,
         "isActive" -> true,
         "activeFromDate" -> LocalDateTime.now(),
-        "rateData" -> Json.obj("x" -> 2 ),
+        "rateData" -> Json.obj("ManualPriceRateData" -> Json.obj()),
         "isDeleted" -> false
       )
 

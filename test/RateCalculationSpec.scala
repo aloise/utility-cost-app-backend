@@ -14,7 +14,7 @@ class RateCalculationSpec extends PlaySpec {
   "Rate data" must {
 
     "return the correct manual price" in {
-      val rate = new ManualPriceRateData()
+      val rate = ManualPriceRateData
 
       rate.calculatePricePerMonth(10, 20).getAmount.intValue() mustBe 0
     }
@@ -32,12 +32,17 @@ class RateCalculationSpec extends PlaySpec {
       val curr = CurrencyUnit.EUR
 
       val rateData = Seq(
-        (BigDecimal(50),Money.of( curr, 1 )),
-        (BigDecimal(250),Money.of( curr, 2 )),
-        (BigDecimal(500),Money.of( curr, 3 ) )
+        BigDecimal(50),
+        BigDecimal(250),
+        BigDecimal(500)
+      )
+      val priceData = Seq(
+        Money.of( curr, 1 ),
+        Money.of( curr, 2 ),
+        Money.of( curr, 3 )
       )
 
-      val rate = new MultiRateData( rateData , Money.of( curr, 5  ) )
+      val rate = new MultiRateData( rateData, priceData, Money.of( curr, 5  ) )
       val price = rate.calculatePricePerMonth( 100, 700 )
 
       price.getAmount.intValue() mustBe ( 1*50 + 2*200 + 3*250 + 5*100 )

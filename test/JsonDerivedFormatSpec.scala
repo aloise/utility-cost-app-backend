@@ -3,11 +3,12 @@
   * Date: 02.06.16
   * Time: 13:23
   */
-import org.scalacheck.{Gen, Arbitrary}
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.FeatureSpec
 import org.scalatest.prop.Checkers
 import julienrf.json.derived._
+import org.joda.money.{CurrencyUnit, Money}
 import play.api.libs.json.{JsNumber, Json, OFormat, OWrites, Reads, __}
 
 class DerivedOFormatSuite extends FeatureSpec with Checkers {
@@ -28,6 +29,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
 
       identityLaw[Foo]
     }
+
 
     scenario("sum types") {
       sealed trait Foo {  protected val zeroPrice = 0 }

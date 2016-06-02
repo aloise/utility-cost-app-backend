@@ -1,10 +1,17 @@
 package models.rate_data
 
+import java.sql.Timestamp
+import java.time.LocalDateTime
 import java.util.Currency
 
 import julienrf.json.derived._
 import org.joda.money.{CurrencyUnit, Money}
 import play.api.libs.json._
+import slick.ast.BaseTypedType
+import slick.driver.H2Driver.api._
+import slick.jdbc.JdbcType
+
+import scala.util.Try
 
 /**
   * User: aloise
@@ -13,6 +20,8 @@ import play.api.libs.json._
   */
 
 object RateDataContainer {
+
+  import models.helpers.JsonJodaMoney.jodaMoneyJsonFormat
 
   sealed trait RateData {
 
@@ -23,7 +32,11 @@ object RateDataContainer {
 
   }
 
-  case class ManualPriceRateData(nothing: Int = 0) extends RateData {
+  case object BrokenPriceRateData extends RateData {
+    def calculatePricePerMonth(previousValue: BigDecimal, newValue: BigDecimal): Money = zeroPrice
+  }
+
+  case object ManualPriceRateData extends RateData {
 
     def calculatePricePerMonth(previousValue: BigDecimal, newValue: BigDecimal): Money = zeroPrice
 
@@ -54,14 +67,14 @@ object RateDataContainer {
     * @param exceedingPrice price for everything that is higher
     */
 
-  case class MultiRateData(rates: Seq[(BigDecimal, Money)], exceedingPrice: Money) extends RateData {
+  case class MultiRateData(rates: Seq[BigDecimal], prices:Seq[Money], exceedingPrice: Money) extends RateData {
 
-    protected val ratesAsc = rates.sortBy(_._1)
+    protected val ratesAsc = ( rates zip prices ).sortBy(_._1)
 
     override def calculatePricePerMonth(previousValue: BigDecimal, newValue: BigDecimal): Money = {
       val delta = newValue - previousValue
       if ((delta > 0) && ratesAsc.nonEmpty) {
-        val currencyUnit = rates.head._2.getCurrencyUnit
+        val currencyUnit = prices.head.getCurrencyUnit
         val (totalPrice, exceedingValue, _) =
         // ( price, amount, tariffSum )
           ratesAsc.foldLeft((BigDecimal(0), delta, BigDecimal(0))) { case ((price, valueLeft, prevTariffAmt), (tariffAmt, tariffPrice)) =>
@@ -85,15 +98,17 @@ object RateDataContainer {
     }
   }
 
-//  implicit val rateDataFormat: OFormat[RateData] = oformat
-//  implicit val rateDataFormat: Reads[RateData] = reads
+  implicit val rateDataFormat: OFormat[RateData] = oformat
 
-}
-
-
-class RateDataJson {
-  import models.rate_data.RateDataContainer.RateData
-
-//  implicit val rateDataFormat: OFormat[RateData] = derived.oformat[RateData]
+  implicit val rateDataColumnType =
+    MappedColumnType.base[RateData, String](
+      rateData => {
+        rateDataFormat.writes( rateData ).toString
+      },
+      string => {
+        val json = Try( Json.parse(string) ).getOrElse(Json.obj())
+        rateDataFormat.reads( json ).getOrElse( BrokenPriceRateData )
+      }
+    )
 
 }
