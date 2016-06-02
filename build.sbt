@@ -14,8 +14,6 @@ parallelExecution in Test := false
 
 fork in Test := true
 
-resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
-
 libraryDependencies ++= Seq(
   cache,
   ws,

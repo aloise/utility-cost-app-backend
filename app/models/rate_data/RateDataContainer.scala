@@ -86,9 +86,3 @@ object RateDataContainer {
   }
 
 }
-
-object RateDataX {
-
-  implicit val rateDataFormat: OFormat[RateDataContainer.RateData] = derived.oformat[RateDataContainer.RateData]
-
-}
