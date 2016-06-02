@@ -61,4 +61,21 @@ object BillsQuery extends IndexedTableQuery[Bill,BillsTable]( tag => new BillsTa
     ).exists
   }
 
+  def lastBillWithinPeriod( fromDate:LocalDateTime, toDate:LocalDateTime ) = {
+
+    val query =
+      for {
+        bill <- BillsQuery
+        serviceRate <- ServiceRatesQuery
+        if
+          ( bill.serviceRateId === serviceRate.id ) &&
+          ( !serviceRate.isDeleted ) &&
+          ( bill.created >= fromDate ) &&
+          ( bill.created <= toDate ) &&
+          ( !bill.isDeleted )
+      } yield ( bill, serviceRate )
+
+    query.sortBy( _._1.created.desc ).take(1).result.headOption
+
+  }
 }

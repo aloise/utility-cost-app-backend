@@ -14,9 +14,9 @@ class RateCalculationSpec extends PlaySpec {
   "Rate data" must {
 
     "return the correct manual price" in {
-      val rate = ManualPriceRateData
+      val rate = ManualPriceRateData( Money.of(CurrencyUnit.USD, BigDecimal(124).bigDecimal ) )
 
-      rate.calculatePricePerMonth(10, 20).getAmount.intValue() mustBe 0
+      rate.calculatePricePerMonth(10, 20).getAmount.intValue() mustBe 124
     }
 
     "return the correct fixed price" in {

@@ -1,9 +1,11 @@
 package intergation
 
 import java.time.LocalDateTime
+
 import akka.stream.Materializer
 import controllers.helpers.AuthAction
 import models.base.DBAccessProvider
+import org.joda.money.{CurrencyUnit, Money}
 import org.scalatestplus.play._
 import play.api.cache.EhCacheModule
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -13,6 +15,7 @@ import play.api.test._
 import play.api.libs.json._
 import play.api.test.Helpers._
 import play.api.libs.functional.syntax._
+import models.helpers.JsonJodaMoney._
 /**
   * User: aloise
   * Date: 30.05.16
@@ -73,7 +76,7 @@ class ServiceRatesApiSpec extends PlaySpec with InitialSetup {
         "serviceId" -> 1,
         "isActive" -> true,
         "activeFromDate" -> LocalDateTime.now(),
-        "rateData" -> Json.obj("ManualPriceRateData" -> Json.obj()),
+        "rateData" -> Json.obj("ManualPriceRateData" -> Json.obj( "amount" -> Money.of( CurrencyUnit.EUR,15) )),
         "isDeleted" -> false
       )
 
@@ -104,7 +107,7 @@ class ServiceRatesApiSpec extends PlaySpec with InitialSetup {
         "serviceId" -> 1,
         "isActive" -> true,
         "activeFromDate" -> LocalDateTime.now(),
-        "rateData" -> Json.obj("ManualPriceRateData" -> Json.obj()),
+        "rateData" -> Json.obj("ManualPriceRateData" -> Json.obj( "amount" -> Money.of( CurrencyUnit.EUR, 125) ) ),
         "isDeleted" -> false
       )
 

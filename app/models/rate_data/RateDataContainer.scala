@@ -32,13 +32,13 @@ object RateDataContainer {
 
   }
 
-  case object BrokenPriceRateData extends RateData {
+  case class BrokenPriceRateData(nothing:Int = 0) extends RateData {
     def calculatePricePerMonth(previousValue: BigDecimal, newValue: BigDecimal): Money = zeroPrice
   }
 
-  case object ManualPriceRateData extends RateData {
+  case class ManualPriceRateData(amount:Money) extends RateData {
 
-    def calculatePricePerMonth(previousValue: BigDecimal, newValue: BigDecimal): Money = zeroPrice
+    def calculatePricePerMonth(previousValue: BigDecimal, newValue: BigDecimal): Money = amount
 
 
   }
@@ -107,7 +107,7 @@ object RateDataContainer {
       },
       string => {
         val json = Try( Json.parse(string) ).getOrElse(Json.obj())
-        rateDataFormat.reads( json ).getOrElse( BrokenPriceRateData )
+        rateDataFormat.reads( json ).getOrElse( BrokenPriceRateData() )
       }
     )
 

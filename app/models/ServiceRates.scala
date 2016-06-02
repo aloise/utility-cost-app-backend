@@ -13,6 +13,7 @@ import play.api.libs.json.{JsNull, JsObject, JsValue}
 import slick.driver.H2Driver.api._
 import models.helpers.SlickColumnExtensions._
 import models.rate_data.RateDataContainer.{ManualPriceRateData, RateData}
+import org.joda.money.{CurrencyUnit, Money}
 
 /**
   * User: aloise
@@ -25,7 +26,7 @@ case class ServiceRate(
     isActive: Boolean,
     activeFromDate:LocalDateTime = LocalDateTime.now(),
     inactiveFromDate:Option[LocalDateTime] = None,
-    rateData:RateData = ManualPriceRateData,
+    rateData:RateData = ManualPriceRateData(Money.zero(CurrencyUnit.USD)),
     override val isDeleted:Boolean = false
 ) extends IndexedRow {
 
