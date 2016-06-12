@@ -31,7 +31,7 @@ case class UsersPlace(
 
 
 
-class UsersPlaces(tag:Tag) extends BaseTable[UsersPlace](tag, "users_places") {
+class UsersPlaces(tag:Tag) extends BaseTable[UsersPlace](tag, "USERS_PLACES") {
 
   def userId = column[Int]("user_id")
   def placeId = column[Int]("place_id")

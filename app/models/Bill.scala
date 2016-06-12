@@ -26,7 +26,7 @@ case class Bill(
 ) extends IndexedRow
 
 
-class BillsTable(tag:Tag) extends IndexedTable[Bill](tag, "bills") {
+class BillsTable(tag:Tag) extends IndexedTable[Bill](tag, "BILLS") {
 
   def placeId = column[Int]("place_id")
   def serviceId = column[Int]("service_id")

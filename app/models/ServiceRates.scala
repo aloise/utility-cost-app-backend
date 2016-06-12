@@ -35,7 +35,7 @@ case class ServiceRate(
 
 }
 
-class ServiceRatesTable(tag:Tag) extends IndexedTable[ServiceRate](tag, "service_rates") {
+class ServiceRatesTable(tag:Tag) extends IndexedTable[ServiceRate](tag, "SERVICE_RATES") {
   def serviceId = column[Int]("service_id")
   def isActive = column[Boolean]("is_active")
   def activeFromDate = column[LocalDateTime]("active_from_date")

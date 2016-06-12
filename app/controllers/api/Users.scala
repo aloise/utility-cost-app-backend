@@ -48,5 +48,14 @@ class Users @Inject() ( implicit ec:ExecutionContext, conf:play.api.Configuratio
     jsonStatusOkFuture( Json.obj( "user" -> user.copy(password = passwordSubst) ) )
   }
 
+  def crossOriginHeaders(path:String) = Action { r =>
+    Ok.withHeaders(
+      "Access-Control-Allow-Origin" -> "*" , // http://foo.example
+      "Access-Control-Allow-Methods" -> "POST, GET, OPTIONS, DELETE, PUT",
+      "Access-Control-Allow-Headers" -> "Content-Type, Auth-Token",
+      "Access-Control-Max-Age" -> "86400"
+    )
+  }
+
 
 }

@@ -27,7 +27,7 @@ case class User(
      override val isDeleted:Boolean = false
 ) extends IndexedRow
 
-class UsersTable(tag: Tag) extends IndexedTable[User](tag, "users") {
+class UsersTable(tag: Tag) extends IndexedTable[User](tag, "USERS") {
 
   def name = column[String]("name")
 

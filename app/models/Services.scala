@@ -27,7 +27,7 @@ case class Service(
   override val isDeleted:Boolean = false
 ) extends IndexedRow
 
-class ServicesTable(tag:Tag) extends IndexedTable[Service](tag, "services") {
+class ServicesTable(tag:Tag) extends IndexedTable[Service](tag, "SERVICES") {
 
   def title = column[String]("title")
   def area = column[String]("area")

@@ -7,6 +7,8 @@ GET     /                                               controllers.Application.
 
 # REST API
 
+# OPTIONS /api/*path                                      controllers.api.Users.crossOriginHeaders( path:String )
+
 POST    /api/users/auth                                 controllers.api.Users.auth
 GET     /api/users/info                                 controllers.api.Users.info
 

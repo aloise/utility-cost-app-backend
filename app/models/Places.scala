@@ -24,7 +24,7 @@ case class Place(
   override val isDeleted:Boolean = false
 ) extends IndexedRow
 
-class PlacesTable(tag:Tag) extends IndexedTable[Place](tag, "places") {
+class PlacesTable(tag:Tag) extends IndexedTable[Place](tag, "PLACES") {
 
   def title = column[String]("title")
   def country = column[String]("country")

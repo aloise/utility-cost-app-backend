@@ -24,7 +24,7 @@ case class PlacesService (
   created:LocalDateTime = LocalDateTime.now()
 )
 
-class PlacesServicesTable(tag:Tag)  extends BaseTable[PlacesService](tag, "places_services") {
+class PlacesServicesTable(tag:Tag)  extends BaseTable[PlacesService](tag, "PLACES_SERVICES") {
   def placeId = column[Int]("place_id")
   def serviceId = column[Int]("service_id")
   def created = column[LocalDateTime]("created")
