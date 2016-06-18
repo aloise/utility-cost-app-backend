@@ -25,6 +25,7 @@ DELETE  /api/places/:placeId/services/:serviceId        controllers.api.Services
 # Places
 
 GET     /api/places                                     controllers.api.Places.list
+GET     /api/places/stats                               controllers.api.Places.globalStats
 GET     /api/places/:placeId                            controllers.api.Places.get(placeId:Int)
 POST    /api/places                                     controllers.api.Places.create
 PUT     /api/places                                     controllers.api.Places.update

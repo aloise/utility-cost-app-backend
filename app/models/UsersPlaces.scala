@@ -18,8 +18,8 @@ object UserRole extends Enumeration {
 
   implicit val mapper = enumColumnType( UserRole )
 
-  val Admin = Value(1) // able to update
-  val User = Value(2) // able to read
+  val Admin = Value("admin") // able to update
+  val User = Value("user") // able to read
 
 }
 
@@ -28,8 +28,6 @@ case class UsersPlace(
   placeId:Int,
   role:UserRole.Value
 )
-
-
 
 class UsersPlaces(tag:Tag) extends BaseTable[UsersPlace](tag, "USERS_PLACES") {
 

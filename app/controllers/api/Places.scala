@@ -9,7 +9,7 @@ import play.api.libs.json.Json
 import slick.driver.H2Driver.api._
 import slick.driver.JdbcProfile
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * User: aloise
@@ -24,6 +24,15 @@ class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ex
     db.run(PlacesQuery.forUser(user.id.getOrElse(0)).result).map { items =>
       jsonStatusOk(Json.obj("places"->items.map(_._2)))
     }
+  }
+
+  def globalStats = apiWithAuth { user: models.User => r =>
+    Future.successful( jsonStatusOk( Json.obj( "stats" -> Json.obj(
+      "placesCount" -> 0,
+      "totalServices" -> 0,
+      "totalPaid" -> 0,
+      "totalDebt" -> 0
+    ))))
   }
 
   def get(placeId:Int) = apiWithAuth(PlacesQuery.hasReadAccess(placeId) _ ) { user => r =>

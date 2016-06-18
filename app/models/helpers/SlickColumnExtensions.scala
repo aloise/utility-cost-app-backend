@@ -51,6 +51,12 @@ object SlickColumnExtensions {
       str     => enum.withName( str )
     )
 
+  def enumIntColumnType[T <: scala.Enumeration]( enum:T ) =
+    MappedColumnType.base[T#Value, Int](
+      value   => value.id,
+      intVal  => enum(intVal)
+    )
+
   implicit def jsBasedColumnType[T: ClassTag](implicit f: Format[T]) =
     MappedColumnType.base[T, String](
       json => play.api.libs.json.Json.stringify( f.writes(json) ),
