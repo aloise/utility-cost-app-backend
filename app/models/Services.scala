@@ -41,6 +41,10 @@ class ServicesTable(tag:Tag) extends IndexedTable[Service](tag, "SERVICES") {
 object ServicesQuery extends IndexedTableQuery[Service, ServicesTable]( tag => new ServicesTable(tag) ) with UserHasAccess[Service] {
 
   def listByPlace( userId: Int, placeId:Int ) = {
+    userServices( userId ).filter{ case ( _, place, _) => place.id === placeId }.map( _._1 )
+  }
+
+  def userServices( userId:Int ) = {
     for {
       service <- ServicesQuery
       servicePlace <- PlacesServicesQuery
@@ -52,10 +56,8 @@ object ServicesQuery extends IndexedTableQuery[Service, ServicesTable]( tag => n
         ( service.id === servicePlace.serviceId ) &&
         ( servicePlace.placeId === place.id ) &&
         ( place.id === userPlace.placeId ) &&
-        ( userPlace.userId === userId ) &&
-        ( place.id === placeId )
-
-    } yield service
+        ( userPlace.userId === userId )
+    } yield ( service, place, userPlace )
   }
 
   override def hasAccess( access: Access )(serviceId: Rep[Int])(userId: Rep[Int]): Rep[Boolean] =

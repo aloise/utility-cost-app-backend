@@ -54,7 +54,7 @@ class Bills @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ext
     val toDate = Try( LocalDateTime.parse(toDateStr) ).getOrElse( defaultEndDate )
 
     db.run( BillsQuery.filter( b => ( b.placeId === placeId ) && ( b.created >= fromDate )  && ( b.created < toDate )  && !b.isDeleted ).result ).map { bills =>
-      jsonStatusOk( Json.obj("bills" -> bills ) )
+      jsonStatusOk( Json.obj( "bills" -> bills ) )
     }
   }
 
