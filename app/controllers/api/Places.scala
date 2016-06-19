@@ -2,12 +2,14 @@ package controllers.api
 
 import javax.inject.Inject
 
-import models.{PlacesQuery, UserRole, UsersPlace, UsersPlacesQuery}
+import models._
 import models.base.{DBAccessProvider, ObjectAccess}
-import models.helpers.JsonModels
+import models.helpers.{JsonJodaMoney, JsonModels}
+import org.joda.money.{CurrencyUnit, Money}
 import play.api.libs.json.Json
 import slick.driver.H2Driver.api._
 import slick.driver.JdbcProfile
+import models.helpers.JsonJodaMoney._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -27,12 +29,60 @@ class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ex
   }
 
   def globalStats = apiWithAuth { user: models.User => r =>
-    Future.successful( jsonStatusOk( Json.obj( "stats" -> Json.obj(
-      "placesCount" -> 0,
-      "totalServices" -> 0,
-      "totalPaid" -> 0,
-      "totalDebt" -> 0
-    ))))
+
+    val placesCountQuery =
+      ( for {
+        place <- PlacesQuery
+        userPlaces <- UsersPlacesQuery
+        if ( place.id === userPlaces.userId ) && ( userPlaces.userId === user.id ) && !place.isDeleted
+      } yield place.id ).length
+
+    val totalServicesQuery =
+      ServicesQuery.userServices( user.id.getOrElse(0) ).length
+
+    val totalPaidQuery =
+      (
+        for {
+          bills <- BillsQuery
+          place <- PlacesQuery
+          userPlaces <- UsersPlacesQuery
+          if
+            ( place.id === userPlaces.userId ) &&
+            ( userPlaces.userId === user.id ) &&
+            ( bills.placeId === place.id ) &&
+            !place.isDeleted &&
+            !bills.isDeleted &&
+            bills.paid.nonEmpty
+        } yield ( bills.valueAmount, bills.valueCurrency )
+      ).groupBy( _._2 ).map{ case ( currencyCode, q ) => ( currencyCode, q.map( _._1 ).sum ) }
+
+    val totalUnpaidQuery =
+      (
+        for {
+          bills <- BillsQuery
+          place <- PlacesQuery
+          userPlaces <- UsersPlacesQuery
+          if
+          ( place.id === userPlaces.userId ) &&
+            ( userPlaces.userId === user.id ) &&
+            ( bills.placeId === place.id ) &&
+            !place.isDeleted &&
+            !bills.isDeleted &&
+            bills.paid.isEmpty
+        } yield ( bills.valueAmount, bills.valueCurrency )
+      ).groupBy( _._2 ).map{ case ( currencyCode, q ) => ( currencyCode, q.map( _._1 ).sum ) }
+
+    val statsQuery = placesCountQuery.result zip totalServicesQuery.result zip totalPaidQuery.result zip totalUnpaidQuery.result
+
+     db.run( statsQuery ).map { case ((( placesCount, totalServicesCount ), totalPaid ), totalUnpaid ) =>
+       jsonStatusOk( Json.obj( "stats" -> Json.obj(
+         "placesCount" -> placesCount,
+         "totalServices" -> totalServicesCount,
+         "totalPaid" -> totalPaid.map{ case ( cc, amt) => Money.of( CurrencyUnit.of(cc) , amt.getOrElse(BigDecimal(0)).bigDecimal ) },
+         "totalDebt" -> totalUnpaid.map{ case ( cc, amt) => Money.of( CurrencyUnit.of(cc) , amt.getOrElse(BigDecimal(0)).bigDecimal ) }
+       )))
+     }
+
   }
 
   def get(placeId:Int) = apiWithAuth(PlacesQuery.hasReadAccess(placeId) _ ) { user => r =>

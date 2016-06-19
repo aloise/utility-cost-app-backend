@@ -35,7 +35,7 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
         }
   }
 
-  def forPlace(placeId:Int) = apiWithAuth{ user:models.User => r =>
+  def forPlace(placeId:Int ) = apiWithAuth{ user:models.User => r =>
     db.run {
       ServicesQuery.listByPlace( user.id.getOrElse(0), placeId ).result
     } map { services =>
