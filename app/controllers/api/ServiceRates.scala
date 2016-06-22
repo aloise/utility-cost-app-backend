@@ -22,6 +22,7 @@ class ServiceRates @Inject()(implicit ec:ExecutionContext, db: DBAccessProvider 
 
 
   def listForService( serviceId:Int, includeInactive:Int = 0 ) = apiWithAuth( ServicesQuery.hasReadAccess( serviceId ) _ ) { user => r =>
+
     db.run(ServiceRatesQuery.forService(serviceId, includeInactive != 0).result).map { serviceRates =>
       jsonStatusOk(Json.obj("serviceRates" -> serviceRates))
     }

@@ -1,12 +1,14 @@
 package controllers.api
 
+import java.sql.Timestamp
 import javax.inject.Inject
+
 import models._
 import models.base.{DBAccessProvider, ObjectAccess}
 import models.helpers.JsonModels
 import slick.driver.H2Driver.api._
 import models.helpers.SlickColumnExtensions._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 
 import scala.concurrent.ExecutionContext
 
@@ -27,19 +29,47 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
 
 
   def get( serviceId:Int ) = apiWithAuth( ServicesQuery.hasReadAccess( serviceId ) _ ){ user => r =>
-        db.run( ServicesQuery.filter( s => ( s.id === serviceId ) && !s.isDeleted ).result.headOption ).map {
+
+      db.run( ServicesQuery.filter( s => ( s.id === serviceId ) && !s.isDeleted ).result.headOption ).map {
           case Some( service ) =>
             jsonStatusOk( Json.obj("service" -> service ) )
           case None =>
             recoverJsonErrors("not_found")
-        }
+      }
   }
 
-  def forPlace(placeId:Int ) = apiWithAuth{ user:models.User => r =>
+  def forPlace( placeId:Int ) = apiWithAuth{ user:models.User => r =>
     db.run {
       ServicesQuery.listByPlace( user.id.getOrElse(0), placeId ).result
-    } map { services =>
-      jsonStatusOk( Json.obj("services" -> services ) )
+    } flatMap { services =>
+
+      val serviceRatesQuery =
+        models.ServiceRatesQuery.filter( serviceRate =>
+            serviceRate.serviceId.inSet(services.flatMap(_.id)) && serviceRate.isActive
+        )
+
+      db.run( serviceRatesQuery.result ).map { activeServiceRates =>
+
+        jsonStatusOk( Json.obj( "services" -> services.map { service =>
+
+          val activeServiceRatesByServiceId =
+            activeServiceRates.
+              groupBy( _.serviceId ).
+              flatMap{
+                case (k , v) => v.sortBy( s => Timestamp.valueOf( s.activeFromDate ).getNanos ).reverse.headOption.map( k -> _ )
+              }
+
+          val serviceJson = Json.toJson( service ).asInstanceOf[JsObject]
+
+          serviceJson ++ Json.obj(
+            "serviceRate" -> activeServiceRatesByServiceId.get( service.id.getOrElse(0) )
+          )
+
+        } ) )
+
+      }
+
+
     }
   }
 

@@ -42,7 +42,7 @@ class RateCalculationSpec extends PlaySpec {
         Money.of( curr, 3 )
       )
 
-      val rate = new MultiRateData( rateData, priceData, Money.of( curr, 5  ) )
+      val rate = new ProgressiveRateData( rateData, priceData, Money.of( curr, 5  ) )
       val price = rate.calculatePricePerMonth( 100, 700 )
 
       price.getAmount.intValue() mustBe ( 1*50 + 2*200 + 3*250 + 5*100 )

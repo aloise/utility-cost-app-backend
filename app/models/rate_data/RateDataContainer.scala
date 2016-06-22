@@ -67,7 +67,7 @@ object RateDataContainer {
     * @param exceedingPrice price for everything that is higher
     */
 
-  case class MultiRateData(rates: Seq[BigDecimal], prices:Seq[Money], exceedingPrice: Money) extends RateData {
+  case class ProgressiveRateData(rates: Seq[BigDecimal], prices:Seq[Money], exceedingPrice: Money) extends RateData {
 
     protected val ratesAsc = ( rates zip prices ).sortBy(_._1)
 

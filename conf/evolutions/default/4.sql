@@ -6,8 +6,8 @@ INSERT INTO SERVICES VALUES (1, 'Electricity', 'Household', 'Electricity', 1, 0)
 INSERT INTO SERVICES VALUES (2, 'Water', 'Household', 'Water', 1, 0);
 INSERT INTO SERVICES VALUES (3, 'Utility', 'Household', 'Utility', 1, 0);
 
-INSERT INTO SERVICE_RATES VALUES (1, 1, 1, TIMESTAMP '2010-01-01 00:00:00', NULL, '{"MultiRateData":{ "rates":[150,500],"prices":[{"currency":"USD", "amount":0.5},{"currency":"USD", "amount":1.0}],"exceedingPrice":{"currency":"USD", "amount":0.5}}', 0);
-INSERT INTO SERVICE_RATES VALUES (2, 2, 1, TIMESTAMP '2010-01-01 00:00:00', NULL, '{"MultiRateData":{ "rates":[],"prices":[],"exceedingPrice":{"currency":"USD", "amount":2.5}}', 0);
+INSERT INTO SERVICE_RATES VALUES (1, 1, 1, TIMESTAMP '2010-01-01 00:00:00', NULL, '{"ProgressiveRateData":{ "rates":[150,500],"prices":[{"currency":"USD", "amount":0.5},{"currency":"USD", "amount":1.0}],"exceedingPrice":{"currency":"USD", "amount":0.5}}', 0);
+INSERT INTO SERVICE_RATES VALUES (2, 2, 1, TIMESTAMP '2010-01-01 00:00:00', NULL, '{"ProgressiveRateData":{ "rates":[],"prices":[],"exceedingPrice":{"currency":"USD", "amount":2.5}}', 0);
 INSERT INTO SERVICE_RATES VALUES (3, 3, 1, TIMESTAMP '2010-01-01 00:00:00', NULL, '{"ManualPriceRateData":{"amount":{"currency":"USD", "amount":1}}}', 0);
 
 INSERT INTO PLACES_SERVICES VALUES (1,1,TIMESTAMP '2016-06-01 00:00:00');
