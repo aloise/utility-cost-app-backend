@@ -50,22 +50,24 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
 
       db.run( serviceRatesQuery.result ).map { activeServiceRates =>
 
-        jsonStatusOk( Json.obj( "services" -> services.map { service =>
+        jsonStatusOk( Json.obj(
+          "services" -> services.map { service =>
 
-          val activeServiceRatesByServiceId =
-            activeServiceRates.
-              groupBy( _.serviceId ).
-              flatMap{
-                case (k , v) => v.sortBy( s => Timestamp.valueOf( s.activeFromDate ).getNanos ).reverse.headOption.map( k -> _ )
-              }
+              val activeServiceRatesByServiceId =
+                activeServiceRates.
+                  groupBy( _.serviceId ).
+                  flatMap{
+                    case (k , v) => v.sortBy( s => Timestamp.valueOf( s.activeFromDate ).getNanos ).reverse.headOption.map( k -> _ )
+                  }
 
-          val serviceJson = Json.toJson( service ).asInstanceOf[JsObject]
+              val serviceJson = Json.toJson( service ).as[JsObject]
 
-          serviceJson ++ Json.obj(
-            "serviceRate" -> activeServiceRatesByServiceId.get( service.id.getOrElse(0) )
-          )
+              serviceJson ++ Json.obj(
+                "serviceRate" -> activeServiceRatesByServiceId.get( service.id.getOrElse(0) )
+              )
 
-        } ) )
+          }
+        ) )
 
       }
 

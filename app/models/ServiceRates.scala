@@ -12,6 +12,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsNull, JsObject, JsValue}
 import slick.driver.H2Driver.api._
 import models.helpers.SlickColumnExtensions._
+import models.rate_data.RateDataContainer
 import models.rate_data.RateDataContainer.{ManualPriceRateData, RateData}
 import org.joda.money.{CurrencyUnit, Money}
 
@@ -40,7 +41,7 @@ class ServiceRatesTable(tag:Tag) extends IndexedTable[ServiceRate](tag, "SERVICE
   def isActive = column[Boolean]("is_active")
   def activeFromDate = column[LocalDateTime]("active_from_date")
   def inactiveFromDate = column[Option[LocalDateTime]]("inactive_from_date")
-  def rateData = column[RateData]("rate_data")
+  def rateData = column[RateData]("rate_data")(RateDataContainer.rateDataColumnType)
 
   def * = ( id.?,serviceId,isActive, activeFromDate, inactiveFromDate, rateData, isDeleted ) <> ( ServiceRate.tupled, ServiceRate.unapply )
 }
