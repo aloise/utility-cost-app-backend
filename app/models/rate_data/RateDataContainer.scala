@@ -1,5 +1,6 @@
 package models.rate_data
 
+import java.math.RoundingMode
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.util.Currency
@@ -73,24 +74,30 @@ object RateDataContainer {
 
     override def calculatePricePerMonth(previousValue: BigDecimal, newValue: BigDecimal): Money = {
       val delta = newValue - previousValue
-      if ((delta > 0) && ratesAsc.nonEmpty) {
-        val currencyUnit = prices.head.getCurrencyUnit
-        val (totalPrice, exceedingValue, _) =
-        // ( price, amount, tariffSum )
-          ratesAsc.foldLeft((BigDecimal(0), delta, BigDecimal(0))) { case ((price, valueLeft, prevTariffAmt), (tariffAmt, tariffPrice)) =>
-            if (valueLeft <= 0) {
-              (price, 0, prevTariffAmt)
-            } else {
+      if ( delta > 0 ) {
+        if( ratesAsc.nonEmpty ) {
 
-              val newTariffLimit = tariffAmt - prevTariffAmt
+          val currencyUnit = prices.head.getCurrencyUnit
+          val (totalPrice, exceedingValue, _) =
+          // ( price, amount, tariffSum )
+            ratesAsc.foldLeft((BigDecimal(0), delta, BigDecimal(0))) { case ((price, valueLeft, prevTariffAmt), (tariffAmt, tariffPrice)) =>
+              if (valueLeft <= 0) {
+                (price, 0, prevTariffAmt)
+              } else {
 
-              val currentDelta = if (valueLeft > newTariffLimit) newTariffLimit else valueLeft
+                val newTariffLimit = tariffAmt - prevTariffAmt
 
-              (price + currentDelta * tariffPrice.getAmount, valueLeft - newTariffLimit, tariffAmt)
+                val currentDelta = if (valueLeft > newTariffLimit) newTariffLimit else valueLeft
+
+                (price + currentDelta * tariffPrice.getAmount, valueLeft - newTariffLimit, tariffAmt)
+              }
             }
-          }
 
-        Money.of(currencyUnit, (totalPrice + exceedingValue * exceedingPrice.getAmount).bigDecimal)
+          Money.of(currencyUnit, (totalPrice + exceedingValue * exceedingPrice.getAmount).bigDecimal, RoundingMode.HALF_UP)
+        } else {
+
+          Money.of(exceedingPrice.getCurrencyUnit, ( delta * exceedingPrice.getAmount).bigDecimal, RoundingMode.HALF_UP)
+        }
 
       } else {
         zeroPrice

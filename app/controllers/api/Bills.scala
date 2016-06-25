@@ -59,9 +59,11 @@ class Bills @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ext
   }
 
   def create( updateAmount:Int = 0 ) = apiWithParserModel( JsonModels.billToJson )( ( bill, uId ) => PlacesQuery.hasWriteAccess( bill.placeId )( uId ) ){ user => bill =>
+
     val updatedAmountValue =
-      if( updateAmount > 0 )
-        getBillAmount( bill.created, bill.readout ) recover { case _:Throwable => bill.value }
+      if( updateAmount > 0 ) {
+        getBillAmount( bill.created, bill.readout, bill.serviceId, bill.placeId, bill.serviceRateId ) recover { case _: Throwable => bill.value }
+      }
       else
         Future.successful( bill.value )
 
@@ -83,7 +85,7 @@ class Bills @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ext
 
       val updatedAmountValue =
         if( updateAmount > 0 )
-          getBillAmount( bill.created, bill.readout ) recover { case _:Throwable => bill.value }
+          getBillAmount( bill.created, bill.readout, bill.serviceId, bill.placeId, bill.serviceRateId ) recover { case _:Throwable => bill.value }
         else
           Future.successful( bill.value )
 
@@ -110,16 +112,20 @@ class Bills @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ext
     }
   }
 
-  protected def getBillAmount( currentMonthDate:LocalDateTime, thisMonthReadout: BigDecimal):Future[Money] = {
+  protected def getBillAmount( currentMonthDate:LocalDateTime, thisMonthReadout: BigDecimal, serviceId:Int, placeId:Int, newBillServiceRateId:Int):Future[Money] = {
 
     // find last previous month bill
 
     val previousMonthStart = currentMonthDate.minusMonths(1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0)
     val previousMonthEnd = previousMonthStart.plusMonths(1).minusNanos(1)
 
-    db.run( BillsQuery.lastBillWithinPeriod( previousMonthStart, previousMonthEnd ) ).map {
-      case Some( ( lastBill, serviceRate ) ) =>
-        serviceRate.calculateAmount( lastBill.readout, thisMonthReadout )
+    val query =
+      BillsQuery.lastBillWithinPeriod( previousMonthStart, previousMonthEnd, serviceId, placeId ) zip
+      models.ServiceRatesQuery.filter( _.id === newBillServiceRateId ).result.headOption
+
+    db.run( query ).map {
+      case ( Some( ( lastBill, _ ) ), Some( newBillServiceRate ) ) =>
+        newBillServiceRate.calculateAmount( lastBill.readout, thisMonthReadout )
 
       case _ =>
         throw new IllegalArgumentException()
