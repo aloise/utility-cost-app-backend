@@ -58,7 +58,7 @@ class Bills @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ext
     }
   }
 
-  def create( updateAmount:Int = 0 ) = apiWithParserModel( JsonModels.billToJson )( ( bill, uId ) => PlacesQuery.hasWriteAccess( bill.serviceId )(uId) ){ user => bill =>
+  def create( updateAmount:Int = 0 ) = apiWithParserModel( JsonModels.billToJson )( ( bill, uId ) => PlacesQuery.hasWriteAccess( bill.placeId )( uId ) ){ user => bill =>
     val updatedAmountValue =
       if( updateAmount > 0 )
         getBillAmount( bill.created, bill.readout ) recover { case _:Throwable => bill.value }
