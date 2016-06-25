@@ -112,21 +112,19 @@ class Bills @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ext
     }
   }
 
-  protected def getBillAmount( currentMonthDate:LocalDateTime, thisMonthReadout: BigDecimal, serviceId:Int, placeId:Int, newBillServiceRateId:Int):Future[Money] = {
+  protected def getBillAmount( currentBillDate:LocalDateTime, thisMonthReadout: BigDecimal, serviceId:Int, placeId:Int, newBillServiceRateId:Int):Future[Money] = {
 
     // find last previous month bill
 
-    val previousMonthStart = currentMonthDate.minusMonths(1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0)
-    val previousMonthEnd = previousMonthStart.plusMonths(1).minusNanos(1)
-
     val query =
-      BillsQuery.lastBillWithinPeriod( previousMonthStart, previousMonthEnd, serviceId, placeId ) zip
+      BillsQuery.lastBillWithinPeriod( currentBillDate, serviceId, placeId ) zip
       models.ServiceRatesQuery.filter( _.id === newBillServiceRateId ).result.headOption
 
     db.run( query ).map {
       case ( Some( ( lastBill, _ ) ), Some( newBillServiceRate ) ) =>
         newBillServiceRate.calculateAmount( lastBill.readout, thisMonthReadout )
-
+      case ( None, Some( newBillServiceRate ) ) =>
+        newBillServiceRate.calculateAmount( 0, thisMonthReadout )
       case _ =>
         throw new IllegalArgumentException()
     }

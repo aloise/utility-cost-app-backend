@@ -61,7 +61,7 @@ object BillsQuery extends IndexedTableQuery[Bill,BillsTable]( tag => new BillsTa
     ).exists
   }
 
-  def lastBillWithinPeriod( fromDate:LocalDateTime, toDate:LocalDateTime, serviceId:Int, placeId:Int ) = {
+  def lastBillWithinPeriod( endDate:LocalDateTime, serviceId:Int, placeId:Int ) = {
 
     val query =
       for {
@@ -72,8 +72,7 @@ object BillsQuery extends IndexedTableQuery[Bill,BillsTable]( tag => new BillsTa
           ( bill.placeId === placeId ) &&
           ( bill.serviceRateId === serviceRate.id ) &&
           ( !serviceRate.isDeleted ) &&
-          ( bill.created >= fromDate ) &&
-          ( bill.created <= toDate ) &&
+          ( bill.created <= endDate ) &&
           ( !bill.isDeleted )
       } yield ( bill, serviceRate )
 
