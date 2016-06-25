@@ -47,8 +47,8 @@ GET     /api/bills/:billId                               controllers.api.Bills.g
 GET     /api/services/:serviceId/bills                   controllers.api.Bills.listByService( serviceId:Int, fromDate:String ?= "", toDate:String ?= "" )
 GET     /api/rates/:rateId/bills                         controllers.api.Bills.listByServiceRate( rateId:Int, fromDate:String ?= "", toDate:String ?= "" )
 GET     /api/places/:placeId/bills                       controllers.api.Bills.listByPlace( placeId:Int, fromDate:String ?= "", toDate:String ?= "" )
-POST    /api/bills                                       controllers.api.Bills.create( updateAmount:Int ?= 0 )
-PUT     /api/bills                                       controllers.api.Bills.update( updateAmount:Int ?= 0 )
+POST    /api/bills/                                       controllers.api.Bills.create( updateAmount:Int ?= 0 )
+PUT     /api/bills/                                       controllers.api.Bills.update( updateAmount:Int ?= 0 )
 DELETE  /api/bills/:billId                               controllers.api.Bills.delete(billId:Int)
 
 
