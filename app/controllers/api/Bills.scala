@@ -74,6 +74,9 @@ class Bills @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ext
       db.run(BillsQuery.insert(billData)).flatMap( id => db.run( BillsQuery.findById(id) ) ).map { data =>
         jsonStatusOk(Json.obj( "bill" -> data ))
       }
+    } recover {
+      case ex:Throwable =>
+        recoverJsonException( ex )
     }
   }
 
@@ -122,7 +125,10 @@ class Bills @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ext
 
     db.run( query ).map {
       case ( Some( ( lastBill, _ ) ), Some( newBillServiceRate ) ) =>
-        newBillServiceRate.calculateAmount( lastBill.readout, thisMonthReadout )
+        if( lastBill.readout <= thisMonthReadout )
+          newBillServiceRate.calculateAmount( lastBill.readout, thisMonthReadout )
+        else
+          throw new IllegalArgumentException("bill_amount_should_be_greater_than_previous")
       case ( None, Some( newBillServiceRate ) ) =>
         newBillServiceRate.calculateAmount( 0, thisMonthReadout )
       case _ =>
