@@ -45,7 +45,7 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
     val query =
       models.ServicesQuery.userServices( user.id.getOrElse(0) ).filter{
         case ( service, _, _ ) =>
-          service.title.like( filterString ) || service.area.like( filterString ) || service.description.like( filterString )
+          service.title.toLowerCase.like( filterString ) || service.area.toLowerCase.like( filterString ) || service.description.toLowerCase.like( filterString )
       }.map( _._1 ).take(limit)
 
     db.run( query.result ).map { services =>
