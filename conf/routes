@@ -41,6 +41,9 @@ PUT     /api/rates                                       controllers.api.Service
 DELETE  /api/rates/:rateId                               controllers.api.ServiceRates.delete(rateId:Int)
 PUT     /api/rates/:rateId/active/:isActive              controllers.api.ServiceRates.setActive(rateId:Int, isActive:Int)
 
+POST     /api/services/:serviceId/rates/update_active    controllers.api.ServiceRates.updateActiveForService( serviceId:Int )
+
+
 # Bill API
 
 GET     /api/bills/:billId                               controllers.api.Bills.get(billId:Int)

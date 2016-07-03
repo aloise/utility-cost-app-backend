@@ -78,5 +78,35 @@ class ServiceRates @Inject()(implicit ec:ExecutionContext, db: DBAccessProvider 
       }
   }
 
+  def updateActiveForService( serviceId:Int ) = apiWithParserHasAccess( JsonModels.serviceRatesToJson )( ServicesQuery.hasReadAccess( serviceId ) _ ) {
+    user: models.User => serviceRate =>
+      val setInactiveQuery = ServiceRatesQuery.filter{ serviceRate =>
+        serviceRate.serviceId === serviceId && serviceRate.isActive
+      }.map( sr => ( sr.isActive, sr.inactiveFromDate ) ).update( ( false, Some( LocalDateTime.now() ) ) )
+
+      val createNewQuery = ServiceRatesQuery.insert(
+        serviceRate.copy(
+          id = None,
+          serviceId = serviceId,
+          isActive = true,
+          activeFromDate = LocalDateTime.now(),
+          isDeleted = false
+        )
+      )
+
+      val updateResultQuery =
+        for {
+          updatedInactive <- setInactiveQuery
+          id <- createNewQuery
+          newServiceRate <- models.ServiceRatesQuery.findById( id )
+        } yield newServiceRate
+
+      db.run( updateResultQuery.transactionally ).map{ newServiceRate =>
+        jsonStatusOk( Json.obj(  "serviceRate" -> newServiceRate ) )
+      }
+
+
+  }
+
 
 }
