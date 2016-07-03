@@ -9,7 +9,7 @@ import models.helpers.JsonModels
 import slick.driver.H2Driver.api._
 import models.helpers.SlickColumnExtensions._
 import play.api.libs.json.{JsObject, Json}
-
+import scala.concurrent._
 import scala.concurrent.ExecutionContext
 
 
@@ -30,10 +30,24 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
 
   def get( serviceId:Int ) = apiWithAuth( ServicesQuery.hasReadAccess( serviceId ) _ ){ user => r =>
 
-      db.run( ServicesQuery.filter( s => ( s.id === serviceId ) && !s.isDeleted ).result.headOption ).map {
-          case Some( service ) =>
-            jsonStatusOk( Json.obj("service" -> service ) )
-          case None =>
+    val query =
+      ServicesQuery.filter( s => ( s.id === serviceId ) && !s.isDeleted ).result.headOption zip
+      models.ServiceRatesQuery.filter( serviceRate => serviceRate.serviceId === serviceId  && serviceRate.isActive ).result
+
+      db.run( query ).map {
+          case ( Some(service), rates ) =>
+
+            val activeServiceRatesByServiceId = getActiveServiceRates( rates )
+
+            val serviceJson = Json.toJson( service ).as[JsObject]
+
+            jsonStatusOk( Json.obj(
+              "service" -> ( serviceJson ++ Json.obj(
+                  "serviceRate" -> activeServiceRatesByServiceId.get( service.id.getOrElse(0) )
+                )
+            ) ) )
+
+          case _ =>
             recoverJsonErrors("not_found")
       }
   }
@@ -68,12 +82,7 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
         jsonStatusOk( Json.obj(
           "services" -> services.map { service =>
 
-              val activeServiceRatesByServiceId =
-                activeServiceRates.
-                  groupBy( _.serviceId ).
-                  flatMap{
-                    case (k , v) => v.sortBy( s => Timestamp.valueOf( s.activeFromDate ).getNanos ).reverse.headOption.map( k -> _ )
-                  }
+              val activeServiceRatesByServiceId = getActiveServiceRates( activeServiceRates )
 
               val serviceJson = Json.toJson( service ).as[JsObject]
 
@@ -85,12 +94,16 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
         ) )
 
       }
-
-
     }
   }
 
-
+  def getActiveServiceRates( serviceRates:Seq[ServiceRate] ):Map[Int, ServiceRate] = {
+    serviceRates.
+      groupBy( _.serviceId ).
+      flatMap{
+        case (k , v) => v.sortBy( s => Timestamp.valueOf( s.activeFromDate ).getNanos ).reverse.headOption.map( k -> _ )
+      }
+  }
 
   def create = apiWithParser( JsonModels.serviceToJson ) { user => service =>
     db.run(ServicesQuery.insert(service.copy( id = None, createdByUserId = user.id.getOrElse(0), isDeleted = false )).flatMap { newId =>
