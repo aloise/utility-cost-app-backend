@@ -38,6 +38,21 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
       }
   }
 
+  def lookup( filter:String, limit: Int = 10 ) = withAuthAsync[models.User] { user => request =>
+
+    val filterString = "%" + filter.trim.filter( _ != '%' ).toLowerCase() + "%"
+
+    val query =
+      models.ServicesQuery.userServices( user.id.getOrElse(0) ).filter{
+        case ( service, _, _ ) =>
+          service.title.like( filterString ) || service.area.like( filterString ) || service.description.like( filterString )
+      }.map( _._1 ).take(limit)
+
+    db.run( query.result ).map { services =>
+      jsonStatusOk( Json.obj("services" -> services ) )
+    }
+  }
+
   def forPlace( placeId:Int ) = apiWithAuth{ user:models.User => r =>
     db.run {
       ServicesQuery.listByPlace( user.id.getOrElse(0), placeId ).result

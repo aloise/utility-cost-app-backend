@@ -12,6 +12,7 @@ GET     /api/users/info                                 controllers.api.Users.in
 
 # Services API
 GET     /api/services/:serviceId/access                 controllers.api.Services.hasServiceAccess( serviceId:Int )
+GET     /api/services/lookup                            controllers.api.Services.lookup( filter:String ?= "", limit: Int ?= 10 )
 
 GET     /api/services/:serviceId                        controllers.api.Services.get( serviceId:Int )
 POST    /api/services                                   controllers.api.Services.create
@@ -21,6 +22,8 @@ DELETE  /api/services/:serviceId                        controllers.api.Services
 GET     /api/places/:placeId/services                   controllers.api.Services.forPlace( placeId:Int )
 POST    /api/places/:placeId/services/:serviceId        controllers.api.Services.attachToPlace( serviceId:Int, placeId:Int )
 DELETE  /api/places/:placeId/services/:serviceId        controllers.api.Services.detachFromPlace( serviceId:Int, placeId:Int )
+
+
 
 # Places
 
@@ -41,7 +44,7 @@ PUT     /api/rates                                       controllers.api.Service
 DELETE  /api/rates/:rateId                               controllers.api.ServiceRates.delete(rateId:Int)
 PUT     /api/rates/:rateId/active/:isActive              controllers.api.ServiceRates.setActive(rateId:Int, isActive:Int)
 
-POST     /api/services/:serviceId/rates/update_active    controllers.api.ServiceRates.updateActiveForService( serviceId:Int )
+POST    /api/services/:serviceId/rates/update_active    controllers.api.ServiceRates.updateActiveForService( serviceId:Int )
 
 
 # Bill API
@@ -58,5 +61,3 @@ DELETE  /api/bills/:billId                               controllers.api.Bills.d
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                                   controllers.Assets.at(path="/public", file)
-
-    
