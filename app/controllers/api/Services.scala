@@ -57,12 +57,31 @@ class Services @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) 
     val filterString = "%" + filter.trim.filter( _ != '%' ).toLowerCase() + "%"
 
     val query =
-      models.ServicesQuery.userServices( user.id.getOrElse(0) ).filter{
-        case ( service, _, _ ) =>
-          service.title.toLowerCase.like( filterString ) || service.area.toLowerCase.like( filterString ) || service.description.toLowerCase.like( filterString )
-      }.map( _._1 ).take(limit)
+      for {
+        service <- ServicesQuery
+        if
+          !service.isDeleted &&
+          (
+            for {
+              servicePlace <- PlacesServicesQuery
+              place <- PlacesQuery
+              userPlace <- UsersPlacesQuery
+              if
+                !place.isDeleted &&
+                ( service.id === servicePlace.serviceId ) &&
+                ( servicePlace.placeId === place.id ) &&
+                ( place.id === userPlace.placeId ) &&
+                ( userPlace.userId === user.id.getOrElse(0) )
+            } yield servicePlace
+          ).exists &&
+          (
+            service.title.toLowerCase.like( filterString ) ||
+            service.area.toLowerCase.like( filterString ) ||
+            service.description.toLowerCase.like( filterString )
+          )
+      } yield service
 
-    db.run( query.result ).map { services =>
+    db.run( query.take(limit).result ).map { services =>
       jsonStatusOk( Json.obj("services" -> services ) )
     }
   }
