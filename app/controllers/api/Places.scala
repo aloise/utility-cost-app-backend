@@ -93,10 +93,14 @@ class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ex
   }
 
   def create = apiWithParser(JsonModels.placeToJson) { user => place =>
-    db.run(PlacesQuery.insert(place.copy(id=None, isDeleted = false)).flatMap { newId =>
-      UsersPlacesQuery.insert(UsersPlace(user.id.getOrElse(-1), newId, UserRole.Admin))
-      PlacesQuery.findById(newId)
-    }).map { place =>
+
+    val query = for {
+      newPlaceId <- PlacesQuery.insert(place.copy(id=None, isDeleted = false))
+      userPlaceResult <- UsersPlacesQuery.insert(UsersPlace(user.id.getOrElse(-1), newPlaceId, UserRole.Admin))
+      newPlace <- PlacesQuery.findById(newPlaceId)
+    } yield newPlace
+
+    db.run( query.transactionally ).map { place =>
       jsonStatusOk(Json.obj("place" -> Json.toJson(place)))
     }
   }
