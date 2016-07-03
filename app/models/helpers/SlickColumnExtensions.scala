@@ -12,7 +12,7 @@ import slick.ast.{LiteralNode, QueryParameter}
 import java.time.{LocalDateTime, ZoneId}
 import java.util
 
-import org.joda.money._
+import org.joda.money.{CurrencyUnit, _}
 
 import scala.language.implicitConversions
 import scala.util.Try
@@ -35,6 +35,12 @@ object SlickColumnExtensions {
     MappedColumnType.base[LocalDateTime, Timestamp](
       dt => Timestamp.valueOf( dt ),
       ts => ts.toLocalDateTime
+    )
+
+  implicit val CurrencyUnitColumnType =
+    MappedColumnType.base[CurrencyUnit, String](
+      currencyUnit => currencyUnit.getCurrencyCode,
+      str => CurrencyUnit.of( str )
     )
 
   implicit def jodaMoney2Tuple( tuple:( BigDecimal,String ) ):Money = {

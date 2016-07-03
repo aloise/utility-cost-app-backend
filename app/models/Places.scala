@@ -4,8 +4,12 @@ import java.time.LocalDateTime
 
 import models.base.ObjectAccess.Access
 import models.base._
+import models.helpers.JsonJodaMoney
+import org.joda.money.CurrencyUnit
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.H2Driver.api._
+import models.helpers.SlickColumnExtensions._
+
 import scala.concurrent.Future
 
 /**
@@ -14,14 +18,15 @@ import scala.concurrent.Future
   * Time: 21:17
   */
 case class Place(
-  override val id:Option[Int],
-  title:String,
-  country:String,
-  city:String,
-  state:String,
-  zip:String,
-  address:String,
-  override val isDeleted:Boolean = false
+    override val id:Option[Int],
+    title:String,
+    country:String,
+    city:String,
+    state:String,
+    zip:String,
+    address:String,
+    currency: CurrencyUnit,
+    override val isDeleted:Boolean = false
 ) extends IndexedRow
 
 class PlacesTable(tag:Tag) extends IndexedTable[Place](tag, "PLACES") {
@@ -32,8 +37,9 @@ class PlacesTable(tag:Tag) extends IndexedTable[Place](tag, "PLACES") {
   def state = column[String]("state")
   def zip = column[String]("zip")
   def address = column[String]("address")
+  def currency = column[CurrencyUnit]("currency")
 
-  def * = (id.?, title, country, city, state, zip, address, isDeleted) <> (Place.tupled, Place.unapply)
+  def * = (id.?, title, country, city, state, zip, address, currency, isDeleted) <> (Place.tupled, Place.unapply)
 }
 
 object PlacesQuery extends IndexedTableQuery[Place,PlacesTable]( tag => new PlacesTable(tag) ) with UserHasAccess[Place] {

@@ -9,7 +9,8 @@ import slick.driver.H2Driver.api._
 import models.helpers.SlickColumnExtensions._
 import play.api.libs.json.Json
 import javax.inject.Inject
-import models.helpers.JsonModels
+
+import models.helpers.{JsonJodaMoney, JsonModels}
 
 import scala.concurrent.ExecutionContext
 
