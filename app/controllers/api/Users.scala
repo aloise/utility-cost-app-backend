@@ -58,7 +58,7 @@ class Users @Inject() ( implicit ec:ExecutionContext, conf:play.api.Configuratio
 
             db.run( models.UsersQuery.findById( userId ) ).map {
               case Some( newUser ) =>
-                jsonStatusOk(Json.obj("user" -> newUser))
+                jsonStatusOk(Json.obj("user" -> newUser.copy(password = passwordSubst), "token" -> getAuthToken( user ) ))
               case None =>
                 recoverJsonErrors("user_insert_failed")
             }
