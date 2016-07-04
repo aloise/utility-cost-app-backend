@@ -7,8 +7,11 @@ GET     /                                               controllers.Application.
 
 # REST API
 
+POST    /api/users                                      controllers.api.Users.signup
+
 POST    /api/users/auth                                 controllers.api.Users.auth
 GET     /api/users/info                                 controllers.api.Users.info
+
 
 # Services API
 GET     /api/services/:serviceId/access                 controllers.api.Services.hasServiceAccess( serviceId:Int )

@@ -11,6 +11,7 @@ import play.api.libs.json.Json._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 import play.api.mvc._
+import slick.driver.H2Driver.api._
 
 import scala.concurrent.ExecutionContext
 
@@ -46,6 +47,30 @@ class Users @Inject() ( implicit ec:ExecutionContext, conf:play.api.Configuratio
 
   def info = withAuthAsync[models.User] { user => request =>
     jsonStatusOkFuture( Json.obj( "user" -> user.copy(password = passwordSubst) ) )
+  }
+
+  def signup = Action.async( parse.json ) { request =>
+    request.body.validate(userToJson).map { user =>
+
+      db.run( models.UsersQuery.map( _.email.toLowerCase ).filter( _ === user.email.trim.toLowerCase ).countDistinct.result ).flatMap {
+        case count if count == 0 =>
+          db.run( models.UsersQuery.signup( user, getSecretToken() ) ).flatMap { userId =>
+
+            db.run( models.UsersQuery.findById( userId ) ).map {
+              case Some( newUser ) =>
+                jsonStatusOk(Json.obj("user" -> newUser))
+              case None =>
+                recoverJsonErrors("user_insert_failed")
+            }
+
+          }
+        case _ =>
+          recoverJsonErrorsFuture("duplicate_email")
+
+      }
+
+    } recoverTotal recoverJsonErrorsFuture
+
   }
 
 }
