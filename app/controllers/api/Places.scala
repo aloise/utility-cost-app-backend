@@ -34,7 +34,7 @@ class Places @Inject() ( implicit ec:ExecutionContext, db: DBAccessProvider ) ex
       ( for {
         place <- PlacesQuery
         userPlaces <- UsersPlacesQuery
-        if ( place.id === userPlaces.userId ) && ( userPlaces.userId === user.id ) && !place.isDeleted
+        if ( place.id === userPlaces.placeId ) && ( userPlaces.userId === user.id ) && !place.isDeleted
       } yield place.id ).length
 
     val totalServicesQuery =
